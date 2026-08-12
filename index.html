@@ -877,42 +877,16 @@
             </p>
         </details>
         <script>
-            let ch = null;
-            let modalChart = null;
-
             const setores = ["Centro Cir.", "CME", "Internação", "CTI", "Lab.", "Farmácia", "Sangue", "Nutrição", "Hig.", "NIR"];
             const base = [100, 95, 90, 75, 70, 80, 55, 60, 65, 100];
             const cores = ['#0F4C81', '#2A9D8F', '#E76F51', '#F4A261', '#457B9D', '#6A4C93', '#D62828', '#43AA8B', '#577590', '#264653'];
-
-            const ESP = [
-                { id: 'dig', nome: 'Ap. Digestivo', pct: 59.42, ticket: 799.49, custo: 1830.06, perm: 5.11, cor: '#2a9d8f' },
-                { id: 'oste', nome: 'Sist. Osteomuscular', pct: 20.18, ticket: 2232.76, custo: 2925.15, perm: 5.37, cor: '#e76f51' },
-                { id: 'gen', nome: 'Ap. Geniturinário', pct: 14.79, ticket: 671.30, custo: 1609.75, perm: 3.01, cor: '#457b9d' },
-                { id: 'circ', nome: 'Ap. Circulatório', pct: 2.88, ticket: 3592.12, custo: 9710.09, perm: 5.24, cor: '#d62828' },
-                { id: 'nerv', nome: 'Sist. Nervoso', pct: 2.55, ticket: 5561.75, custo: 10733.64, perm: 6.26, cor: '#6a4c93' },
-                { id: 'vias', nome: 'Vias Aéreas/Face', pct: 0.17, ticket: 195.30, custo: 1070.93, perm: 6.00, cor: '#ff9800' },
-            ];
-
-            function getEl(id) {
-                return document.getElementById(id);
-            }
-
+            const ch = new Chart(graf, {
+                type: 'bar', data: { labels: setores, datasets: [{ data: base, backgroundColor: cores, borderRadius: 8 }] },
+                options: { plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 100, ticks: { callback: v => v + "%" } } } }
+            });
             function calc() {
-                const cir = getEl("cir");
-                const perm = getEl("perm");
-                const ctiPct = getEl("ctiPct");
-                const cirTxt = getEl("cirTxt");
-                const permTxt = getEl("permTxt");
-                const ctiPctTxt = getEl("ctiPctTxt");
-                const cres = getEl("cres");
-
-                if (!cir || !perm || !ctiPct) return;
-
                 let t = +cir.value, p = +perm.value, c = +ctiPct.value / 100, add = t - 700;
-                if (cirTxt) cirTxt.textContent = t; 
-                if (permTxt) permTxt.textContent = p.toFixed(1); 
-                if (ctiPctTxt) ctiPctTxt.textContent = ctiPct.value;
-
+                cirTxt.textContent = t; permTxt.textContent = p.toFixed(1); ctiPctTxt.textContent = ctiPct.value;
                 let cresc = (add / 700) * 100;
                 const leitosBase = 80;
                 const leitosProjetados = leitosBase * (t / 700) * (p / 6.9);
@@ -960,23 +934,18 @@
                 const endoscopiaBase = 12;
                 const endoscopiaProjetado = endoscopiaBase * (t / 700) * (p / 6.9);
                 const endoscopiaAdd = endoscopiaProjetado - endoscopiaBase;
-
-                if (cres) cres.innerHTML = "<h2>" + cresc.toFixed(1) + "%</h2>";
-                if (getEl("leitos")) getEl("leitos").innerHTML = `<h2>+${leitosAdicionais.toFixed(1)}</h2><small>Atual: ${leitosBase} | Projetado: ${leitosProjetados.toFixed(1)}</small>`;
-                if (getEl("cti")) getEl("cti").innerHTML = `<h2>+${ctiL.toFixed(1)}</h2><small>Atual: ${ctiAtual.toFixed(1)} | Projetado: ${ctiProjetado.toFixed(1)}</small>`;
-                if (getEl("labTotal")) getEl("labTotal").innerHTML = `<h2>${labAdd > 0 ? '+' : ''}${labAdd.toLocaleString('pt-BR')}</h2><small>Atual: ${labBaseMes.toLocaleString('pt-BR')} → Projetado: ${labProjetado.toLocaleString('pt-BR')}</small>`;
-                if (getEl("labMediaCir")) getEl("labMediaCir").innerHTML = `<h2>${labMediaBase}</h2><small>${labMediaBase} exames/paciente (média real)</small>`;
-                
+                cres.innerHTML = "<h2>" + cresc.toFixed(1) + "%</h2>";
+                document.getElementById("leitos").innerHTML = `<h2>+${leitosAdicionais.toFixed(1)}</h2><small>Atual: ${leitosBase} | Projetado: ${leitosProjetados.toFixed(1)}</small>`;
+                document.getElementById("cti").innerHTML = `<h2>+${ctiL.toFixed(1)}</h2><small>Atual: ${ctiAtual.toFixed(1)} | Projetado: ${ctiProjetado.toFixed(1)}</small>`;
+                document.getElementById("labTotal").innerHTML = `<h2>${labAdd > 0 ? '+' : ''}${labAdd.toLocaleString('pt-BR')}</h2><small>Atual: ${labBaseMes.toLocaleString('pt-BR')} → Projetado: ${labProjetado.toLocaleString('pt-BR')}</small>`;
+                document.getElementById("labMediaCir").innerHTML = `<h2>${labMediaBase}</h2><small>${labMediaBase} exames/paciente (média real)</small>`;
                 const crescPct = ((labProjetado / labBaseMes) - 1) * 100;
-                if (getEl("labCresc")) getEl("labCresc").innerHTML = `<h2>+${crescPct.toFixed(1)}%</h2><small>Crescimento ponderado (cirurgia + enfermaria)</small>`;
-                
+                document.getElementById("labCresc").innerHTML = `<h2>+${crescPct.toFixed(1)}%</h2><small>Crescimento ponderado (cirurgia + enfermaria)</small>`;
                 topExames.forEach(ex => {
                     const proj = Math.round(ex.base * fatorCirurgia * fatorPermanencia);
                     const add = proj - ex.base;
-                    const el = getEl(ex.id);
-                    if (el) el.innerHTML = `<h2>+${add.toLocaleString('pt-BR')}</h2><small>Atual: ${ex.base.toLocaleString('pt-BR')} → Projetado: ${proj.toLocaleString('pt-BR')}</small>`;
+                    document.getElementById(ex.id).innerHTML = `<h2>+${add.toLocaleString('pt-BR')}</h2><small>Atual: ${ex.base.toLocaleString('pt-BR')} → Projetado: ${proj.toLocaleString('pt-BR')}</small>`;
                 });
-
                 const CME_ITENS_BASE = 589, CME_CAP_MES = 20000, CME_ITENS_CIR = 14;
                 const cmeItens = Math.round(CME_ITENS_BASE + ((t - 700) * CME_ITENS_CIR));
                 const cmeItensMes = cmeItens * 30;
@@ -988,23 +957,19 @@
                 const cmeAdd = cmeProf - cmeProfBase;
                 const cmeCapCor = cmeCapPct > 100 ? '#c0392b' : cmeCapPct > 85 ? '#e68a00' : '#0d7a7a';
                 const cmeStatus = cmeCapPct > 100 ? 'EXCEDIDA' : cmeHeadroomCir > 0 ? `${Math.floor(cmeHeadroomCir)} cir. disponíveis` : 'Lotada';
-                
-                if (getEl("cmeItens")) getEl("cmeItens").innerHTML = `<h2>${cmeItens.toLocaleString('pt-BR')}</h2><small>Atual: ${CME_ITENS_BASE.toLocaleString('pt-BR')} → Projetado: ${cmeItens.toLocaleString('pt-BR')}</small>`;
-                if (getEl("cmeThe")) getEl("cmeThe").innerHTML = `<h2>${cmeThe.toFixed(1)}h</h2><small>Atual: ${(CME_ITENS_BASE * 205.12 / 690).toFixed(1)}h → Projetado: ${cmeThe.toFixed(1)}h</small>`;
-                if (getEl("cmeCap")) getEl("cmeCap").innerHTML = `<h2 style="color:${cmeCapCor}">${cmeCapPct.toFixed(1)}%</h2><small>${cmeItensMes.toLocaleString('pt-BR')}/${CME_CAP_MES.toLocaleString('pt-BR')} Pacotes/mês — ${cmeStatus}</small>`;
-                if (getEl("radio")) getEl("radio").innerHTML = `<h2>+${Math.round(radioAdd)}</h2><small>Atual: ${Math.round(radioBase)} → Projetado: ${Math.round(radioProjetado)}</small>`;
-                if (getEl("tomo")) getEl("tomo").innerHTML = `<h2>+${Math.round(tomoAdd)}</h2><small>Atual: ${Math.round(tomoBase)} → Projetado: ${Math.round(tomoProjetado)}</small>`;
-                if (getEl("us")) getEl("us").innerHTML = `<h2>+${Math.round(usAdd)}</h2><small>Atual: ${Math.round(usBase)} → Projetado: ${Math.round(usProjetado)}</small>`;
-                if (getEl("duplex")) getEl("duplex").innerHTML = `<h2>+${Math.round(duplexAdd)}</h2><small>Atual: ${Math.round(duplexBase)} → Projetado: ${Math.round(duplexProjetado)}</small>`;
-                if (getEl("rm")) getEl("rm").innerHTML = `<h2>+${Math.round(rmAdd)}</h2><small>Atual: ${Math.round(rmBase)} → Projetado: ${Math.round(rmProjetado)}</small>`;
-                if (getEl("eco")) getEl("eco").innerHTML = `<h2>+${Math.round(ecoAdd)}</h2><small>Atual: ${Math.round(ecoBase)} → Projetado: ${Math.round(ecoProjetado)}</small>`;
-                if (getEl("endo")) getEl("endo").innerHTML = `<h2>+${Math.round(endoAdd)}</h2><small>Atual: ${Math.round(endoBase)} → Projetado: ${Math.round(endoProjetado)}</small>`;
-                if (getEl("endoscopia")) getEl("endoscopia").innerHTML = `<h2>+${Math.round(endoscopiaAdd)}</h2><small>Atual: ${Math.round(endoscopiaBase)} → Projetado: ${Math.round(endoscopiaProjetado)}</small>`;
-                
-                if (ch) {
-                    ch.data.datasets[0].data = base.map(v => Math.min(100, Math.round(v * (t / 920) * (p / 6.9))));
-                    ch.update();
-                }
+                document.getElementById("cmeItens").innerHTML = `<h2>${cmeItens.toLocaleString('pt-BR')}</h2><small>Atual: ${CME_ITENS_BASE.toLocaleString('pt-BR')} → Projetado: ${cmeItens.toLocaleString('pt-BR')}</small>`;
+                document.getElementById("cmeThe").innerHTML = `<h2>${cmeThe.toFixed(1)}h</h2><small>Atual: ${(CME_ITENS_BASE * 205.12 / 690).toFixed(1)}h → Projetado: ${cmeThe.toFixed(1)}h</small>`;
+                document.getElementById("cmeCap").innerHTML = `<h2 style="color:${cmeCapCor}">${cmeCapPct.toFixed(1)}%</h2><small>${cmeItensMes.toLocaleString('pt-BR')}/${CME_CAP_MES.toLocaleString('pt-BR')} Pacotes/mês — ${cmeStatus}</small>`;
+                document.getElementById("radio").innerHTML = `<h2>+${Math.round(radioAdd)}</h2><small>Atual: ${Math.round(radioBase)} → Projetado: ${Math.round(radioProjetado)}</small>`;
+                document.getElementById("tomo").innerHTML = `<h2>+${Math.round(tomoAdd)}</h2><small>Atual: ${Math.round(tomoBase)} → Projetado: ${Math.round(tomoProjetado)}</small>`;
+                document.getElementById("us").innerHTML = `<h2>+${Math.round(usAdd)}</h2><small>Atual: ${Math.round(usBase)} → Projetado: ${Math.round(usProjetado)}</small>`;
+                document.getElementById("duplex").innerHTML = `<h2>+${Math.round(duplexAdd)}</h2><small>Atual: ${Math.round(duplexBase)} → Projetado: ${Math.round(duplexProjetado)}</small>`;
+                document.getElementById("rm").innerHTML = `<h2>+${Math.round(rmAdd)}</h2><small>Atual: ${Math.round(rmBase)} → Projetado: ${Math.round(rmProjetado)}</small>`;
+                document.getElementById("eco").innerHTML = `<h2>+${Math.round(ecoAdd)}</h2><small>Atual: ${Math.round(ecoBase)} → Projetado: ${Math.round(ecoProjetado)}</small>`;
+                document.getElementById("endo").innerHTML = `<h2>+${Math.round(endoAdd)}</h2><small>Atual: ${Math.round(endoBase)} → Projetado: ${Math.round(endoProjetado)}</small>`;
+                document.getElementById("endoscopia").innerHTML = `<h2>+${Math.round(endoscopiaAdd)}</h2><small>Atual: ${Math.round(endoscopiaBase)} → Projetado: ${Math.round(endoscopiaProjetado)}</small>`;
+                ch.data.datasets[0].data = base.map(v => Math.min(100, Math.round(v * (t / 920) * (p / 6.9))));
+                ch.update();
 
                 const CARGA_BRUTA = 540, DESCONTOS = 95, CARGA_LIQUIDA = 445, DIAS_UTEIS = 22, TEMPO_AIH = 10, TREINAMENTO = 45, FTE_ATUAL = 1;
                 const aihBase = 1771;
@@ -1022,15 +987,15 @@
                 const backlogAih = Math.round(deficitAih * (TREINAMENTO / 30));
                 const backlogHoras = (backlogAih * TEMPO_AIH) / 60;
 
-                if (getEl("nirDemanda")) getEl("nirDemanda").innerHTML = `
+                document.getElementById("nirDemanda").innerHTML = `
                     <h2>${aihMes.toLocaleString('pt-BR')} AIHs</h2>
                     <small>${demandaMin.toLocaleString('pt-BR')} min/mês | 1 FTE: ${cap1FteAih.toLocaleString('pt-BR')} AIHs (${cap1FteMin.toLocaleString('pt-BR')} min)</small>`;
 
-                if (getEl("nirDeficit")) getEl("nirDeficit").innerHTML = `
+                document.getElementById("nirDeficit").innerHTML = `
                     <h2 style="color:${deficitAih > 0 ? 'red' : 'green'}">${deficitAih > 0 ? '+' : ''}${deficitAih.toLocaleString('pt-BR')} AIHs</h2>
                     <small>${deficitMin.toLocaleString('pt-BR')} min/mês — ${horasExtrasDia.toFixed(1)}h extras/dia | Backlog ${TREINAMENTO}d: ${backlogAih.toLocaleString('pt-BR')} AIHs (${backlogHoras.toFixed(1)}h)</small>`;
 
-                if (getEl("nirFte")) getEl("nirFte").innerHTML = `
+                document.getElementById("nirFte").innerHTML = `
                     <h2 style="color:${FTE_ATUAL < fteMinimo ? 'red' : FTE_ATUAL < fteIdeal ? '#e68a00' : 'green'}">${FTE_ATUAL} / ${fteMinimo}-${fteIdeal}</h2>
                     <small>Atual: ${FTE_ATUAL} FTE | Necessário: ${fteMinimo} | Ideal: ${fteIdeal} — ${FTE_ATUAL < fteMinimo ? 'Déficit crítico' : FTE_ATUAL < fteIdeal ? 'Risco de turnover' : 'Equipe segura'}</small>`;
 
@@ -1041,7 +1006,7 @@
                     : FTE_ATUAL < fteIdeal
                         ? 'Turnover de 30% pode parar o faturamento por 45 dias'
                         : 'Operação segura com margem para imprevistos';
-                if (getEl("nirStatus")) getEl("nirStatus").innerHTML = `
+                document.getElementById("nirStatus").innerHTML = `
                     <h2 style="color:${riscoCor}">${risco}</h2>
                     <small>${riscoDet}</small>`;
 
@@ -1059,19 +1024,19 @@
                 const ocupTaxa24h = (OCUP_DEMANDA_HORAS / OCUP_CAP_TOTAL_H) * 100;
                 const ocupFolga24h = OCUP_CAP_TOTAL_H - OCUP_DEMANDA_HORAS;
 
-                if (getEl("nirOcupDemanda")) getEl("nirOcupDemanda").innerHTML = `
+                document.getElementById("nirOcupDemanda").innerHTML = `
                     <h2>${OCUP_EVENTOS_DIA} altas/dia</h2>
                     <small>${OCUP_TEMPO_CICLO} min/ciclo (7 etapas) = ${OCUP_DEMANDA_DIA.toLocaleString('pt-BR')} min/dia (${OCUP_DEMANDA_HORAS.toFixed(2)}h)</small>`;
 
-                if (getEl("nirOcupCapacidade")) getEl("nirOcupCapacidade").innerHTML = `
+                document.getElementById("nirOcupCapacidade").innerHTML = `
                     <h2>3 colab./dia (2D+1N)</h2>
                     <small>${OCUP_COL_DIURNO}D+${OCUP_COL_NOTURNO}N cadastrados | ${OCUP_CAP_TOTAL_H}h/dia (${OCUP_CAP_TOTAL_MIN} min) escala 12/36</small>`;
 
-                if (getEl("nirOcupDiurno")) getEl("nirOcupDiurno").innerHTML = `
+                document.getElementById("nirOcupDiurno").innerHTML = `
                     <h2 style="color:red">${ocupTaxaDiurno.toFixed(1)}%</h2>
                     <small>Déficit: ${ocupDeficitDiurno.toFixed(2)}h/dia — inviável apenas no diurno. Necessário +2 colab. diurnos</small>`;
 
-                if (getEl("nirOcup24h")) getEl("nirOcup24h").innerHTML = `
+                document.getElementById("nirOcup24h").innerHTML = `
                     <h2 style="color:#e68a00">${ocupTaxa24h.toFixed(1)}%</h2>
                     <small>Folga: ${ocupFolga24h.toFixed(2)}h/dia — limítrofe. Risco alto com pausas, lentidão e imprevistos</small>`;
 
@@ -1087,9 +1052,9 @@
                 const ambOcupacaoPct = (ambConsultas / ambCapacidadeReal) * 100;
                 const ambStatusCor = ambOcupacaoPct > 80 ? 'red' : ambOcupacaoPct > 50 ? '#e68a00' : 'green';
                 const ambStatusTxt = ambOcupacaoPct > 80 ? 'Alta' : ambOcupacaoPct > 50 ? 'Atenção' : 'Normal';
-                if (getEl("ambPacientes")) getEl("ambPacientes").innerHTML = `<h2>${Math.round(ambPacientes)}</h2><small>${(ambPct * 100)}% de ${t} cirurgias/mês</small>`;
-                if (getEl("ambConsultas")) getEl("ambConsultas").innerHTML = `<h2>${Math.round(ambConsultas)}</h2><small>${ambMinConsultas} consultas/paciente (mínimo)</small>`;
-                if (getEl("ambOcupacao")) getEl("ambOcupacao").innerHTML = `<h2 style="color:${ambStatusCor}">${ambOcupacaoPct.toFixed(1)}%</h2><small>${Math.round(ambConsultas)} de ${Math.round(ambCapacidadeReal).toLocaleString('pt-BR')} consultas — ${ambStatusTxt}</small>`;
+                document.getElementById("ambPacientes").innerHTML = `<h2>${Math.round(ambPacientes)}</h2><small>${(ambPct * 100)}% de ${t} cirurgias/mês</small>`;
+                document.getElementById("ambConsultas").innerHTML = `<h2>${Math.round(ambConsultas)}</h2><small>${ambMinConsultas} consultas/paciente (mínimo)</small>`;
+                document.getElementById("ambOcupacao").innerHTML = `<h2 style="color:${ambStatusCor}">${ambOcupacaoPct.toFixed(1)}%</h2><small>${Math.round(ambConsultas)} de ${Math.round(ambCapacidadeReal).toLocaleString('pt-BR')} consultas — ${ambStatusTxt}</small>`;
 
                 // Faturamento e Auditoria Hospitalar
                 const fatInternacoes = t * 2;
@@ -1128,11 +1093,11 @@
                     alertMsg = "Equipe atual dimensionada adequadamente para a demanda.";
                 }
 
-                if (getEl("fatVolume")) getEl("fatVolume").innerHTML = `
+                document.getElementById("fatVolume").innerHTML = `
                     <h2>${fatAihs.toLocaleString('pt-BR')} AIHs</h2>
                     <small>Projetadas para <b>${fatInternacoes.toLocaleString('pt-BR')} internações</b><br>(Proporção de 1.15 AIH/int.)</small>`;
 
-                if (getEl("fatEquipe")) getEl("fatEquipe").innerHTML = `
+                document.getElementById("fatEquipe").innerHTML = `
                     <h2>${totalEquipe} prof.</h2>
                     <small>${cenarioNome}<br>
                     • Auditores: ${fatAuditores}<br>
@@ -1140,33 +1105,39 @@
                     • Faturistas: ${fatFaturistas}<br>
                     • Aux. Adm: ${fatAuxiliares}</small>`;
 
-                if (getEl("fatProdutividade")) getEl("fatProdutividade").innerHTML = `
+                document.getElementById("fatProdutividade").innerHTML = `
                     <h2>${prodFaturista} / ${prodAuditor}</h2>
                     <small>Média de AIHs processadas por:<br>
                     • Faturista: <b>${prodFaturista}</b> AIHs<br>
                     • Auditor Médico: <b>${prodAuditor}</b> AIHs</small>`;
 
-                if (getEl("fatStatus")) getEl("fatStatus").innerHTML = `
+                document.getElementById("fatStatus").innerHTML = `
                     <h3 style="color:${alertColor === 'red' ? '#c0392b' : '#27ae60'}; margin:0 0 6px; font-size:1rem;">${alertColor === 'red' ? '⚠️ Alerta de Impacto' : '🟢 Operação Estável'}</h3>
                     <small style="display:block; line-height:1.35; color:${alertColor === 'red' ? '#c0392b' : '#27ae60'}">${alertMsg}</small>
                     <small style="display:block; margin-top:6px; color:#7f8c8d; font-size:0.75rem;">
                         * O setor opera no limite devido à <b>ausência de pré-faturamento estruturado</b>.
                     </small>`;
             }
+            cir.oninput = calc; perm.oninput = calc; ctiPct.oninput = calc; calc();
 
+            let modalChart = null;
+            const ESP = [
+                { id: 'dig', nome: 'Ap. Digestivo', pct: 59.42, ticket: 799.49, custo: 1830.06, perm: 5.11, cor: '#2a9d8f' },
+                { id: 'oste', nome: 'Sist. Osteomuscular', pct: 20.18, ticket: 2232.76, custo: 2925.15, perm: 5.37, cor: '#e76f51' },
+                { id: 'gen', nome: 'Ap. Geniturinário', pct: 14.79, ticket: 671.30, custo: 1609.75, perm: 3.01, cor: '#457b9d' },
+                { id: 'circ', nome: 'Ap. Circulatório', pct: 2.88, ticket: 3592.12, custo: 9710.09, perm: 5.24, cor: '#d62828' },
+                { id: 'nerv', nome: 'Sist. Nervoso', pct: 2.55, ticket: 5561.75, custo: 10733.64, perm: 6.26, cor: '#6a4c93' },
+                { id: 'vias', nome: 'Vias Aéreas/Face', pct: 0.17, ticket: 195.30, custo: 1070.93, perm: 6.00, cor: '#ff9800' },
+            ];
             function toggleEstrat() {
-                const m = getEl('estratModal');
-                if (!m) return;
-                const show = m.style.display === 'none' || m.style.display === '';
+                const m = document.getElementById('estratModal');
+                const show = m.style.display === 'none';
                 m.style.display = show ? 'flex' : 'none';
                 if (show) initModal();
             }
-
             function initModal() {
-                const g = getEl('modalGrid');
-                const cir = getEl('cir');
-                if (!g || g.children.length || !cir) return;
-                
+                const g = document.getElementById('modalGrid');
+                if (g.children.length) return;
                 const t = +cir.value;
                 ESP.forEach(e => {
                     const baseQty = Math.round(t * e.pct / 100);
@@ -1188,27 +1159,22 @@
                         </div>`;
                     g.appendChild(d);
                 });
-
-                const ctx = getEl('modalChart');
-                if (ctx && typeof Chart !== 'undefined') {
-                    modalChart = new Chart(ctx, {
-                        type: 'doughnut',
-                        data: { labels: ESP.map(e => e.nome), datasets: [{ data: ESP.map(e => e.qty), backgroundColor: ESP.map(e => e.cor), borderWidth: 2, borderColor: '#fff' }] },
-                        options: { plugins: { legend: { position: 'right', labels: { boxWidth: 12, padding: 8, font: { size: 11 } } } } }
-                    });
-                }
+                const ctx = document.getElementById('modalChart');
+                modalChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: { labels: ESP.map(e => e.nome), datasets: [{ data: ESP.map(e => e.qty), backgroundColor: ESP.map(e => e.cor), borderWidth: 2, borderColor: '#fff' }] },
+                    options: { plugins: { legend: { position: 'right', labels: { boxWidth: 12, padding: 8, font: { size: 11 } } } } }
+                });
                 atualizar();
             }
-
             function recalcular(id) {
                 const e = ESP.find(item => item.id === id);
                 if (e) {
-                    const s = getEl(`ms-${e.id}`);
-                    if (s) e.qty = +s.value;
+                    const s = document.getElementById(`ms-${e.id}`);
+                    e.qty = +s.value;
                 }
                 atualizar();
             }
-
             function atualizar() {
                 let novoTotal = 0;
                 ESP.forEach(e => novoTotal += e.qty);
@@ -1219,10 +1185,8 @@
 
                 ESP.forEach(e => {
                     const newPct = (e.qty / novoTotal) * 100;
-                    const mp = getEl(`mp-${e.id}`);
-                    const mpr = getEl(`mpr-${e.id}`);
-                    if (mp) mp.textContent = newPct.toFixed(1) + '%';
-                    if (mpr) mpr.textContent = e.qty;
+                    document.getElementById(`mp-${e.id}`).textContent = newPct.toFixed(1) + '%';
+                    document.getElementById(`mpr-${e.id}`).textContent = e.qty;
 
                     if (e.ticket) totFat += e.qty * e.ticket;
                     if (e.custo) totCusto += e.qty * e.custo;
@@ -1232,27 +1196,29 @@
                     }
                 });
 
-                const cir = getEl('cir');
-                const t = cir ? +cir.value : 700;
-                let baseFat = 0;
+                // Calcular impacto financeiro em relação à base da primeira página
+                // Impacto = Δ Custo − Δ Faturamento (Custo − Faturamento)
+                const t = +cir.value;
+                let baseFat = 0, baseCusto = 0;
                 ESP.forEach(e => {
                     const baseQty = Math.round(t * e.pct / 100);
                     if (e.ticket) baseFat += baseQty * e.ticket;
+                    if (e.custo) baseCusto += baseQty * e.custo;
                 });
 
                 const deltaFat = totFat - baseFat;
-                const impEl = getEl('mImpacto');
-                if (impEl) {
-                    if (deltaFat > 0) {
-                        impEl.style.color = '#2a9d8f';
-                        impEl.textContent = '+R$ ' + fmt2(deltaFat);
-                    } else if (deltaFat < 0) {
-                        impEl.style.color = '#d62828';
-                        impEl.textContent = '-R$ ' + fmt2(Math.abs(deltaFat));
-                    } else {
-                        impEl.style.color = '#526b79';
-                        impEl.textContent = 'R$ 0,00';
-                    }
+                const deltaCusto = totCusto - baseCusto;
+                const impactoFin = deltaCusto - deltaFat;
+                const impEl = document.getElementById('mImpacto');
+                if (impactoFin > 0) {
+                    impEl.style.color = '#d62828'; // vermelho: custo adicional > faturamento adicional (impacto negativo)
+                    impEl.textContent = '-R$ ' + fmt2(impactoFin);
+                } else if (impactoFin < 0) {
+                    impEl.style.color = '#2a9d8f'; // verde: faturamento adicional > custo adicional (impacto positivo)
+                    impEl.textContent = '+R$ ' + fmt2(Math.abs(impactoFin));
+                } else {
+                    impEl.style.color = '#526b79'; // cinza
+                    impEl.textContent = 'R$ 0,00';
                 }
 
                 const novaPerm = (() => {
@@ -1260,85 +1226,49 @@
                     return espComPerm.length ? espComPerm.reduce((s, e) => s + e.perm, 0) / espComPerm.length : 5.16;
                 })();
 
-                if (getEl('mTotProc')) getEl('mTotProc').textContent = Math.round(novoTotal).toLocaleString('pt-BR');
-                if (getEl('mTotFat')) getEl('mTotFat').textContent = 'R$ ' + fmt2(totFat);
-                if (getEl('mTotCusto')) getEl('mTotCusto').textContent = 'R$ ' + fmt2(totCusto);
-                
+                document.getElementById('mTotProc').textContent = Math.round(novoTotal).toLocaleString('pt-BR');
+                document.getElementById('mTotFat').textContent = 'R$ ' + fmt2(totFat);
+                document.getElementById('mTotCusto').textContent = 'R$ ' + fmt2(totCusto);
+                // Ticket e custo médio calculados como média aritmética simples (igual ao Total Geral do relatório)
                 const espComTicket = ESP.filter(e => e.ticket);
                 const espComCusto = ESP.filter(e => e.custo);
                 const ticketMedioSimples = espComTicket.length ? espComTicket.reduce((s, e) => s + e.ticket, 0) / espComTicket.length : 0;
                 const custoMedioSimples = espComCusto.length ? espComCusto.reduce((s, e) => s + e.custo, 0) / espComCusto.length : 0;
-                
-                if (getEl('mTicket')) getEl('mTicket').textContent = 'R$ ' + fmt2(ticketMedioSimples);
-                if (getEl('mCustoMedio')) getEl('mCustoMedio').textContent = 'R$ ' + fmt2(custoMedioSimples);
-                if (getEl('mPerm')) getEl('mPerm').textContent = novaPerm.toFixed(2) + 'd';
+                document.getElementById('mTicket').textContent = 'R$ ' + fmt2(ticketMedioSimples);
+                document.getElementById('mCustoMedio').textContent = 'R$ ' + fmt2(custoMedioSimples);
+                document.getElementById('mPerm').textContent = novaPerm.toFixed(2) + 'd';
 
                 if (modalChart) {
                     modalChart.data.datasets[0].data = ESP.map(e => e.qty);
                     modalChart.update();
                 }
             }
-
             function resetEstrat() {
-                const cir = getEl('cir');
-                const t = cir ? +cir.value : 700;
+                const t = +cir.value;
                 ESP.forEach(e => {
                     const baseQty = Math.round(t * e.pct / 100);
                     e.qty = baseQty;
-                    const s = getEl(`ms-${e.id}`);
+                    const s = document.getElementById(`ms-${e.id}`);
                     if (s) s.value = baseQty;
                 });
                 atualizar();
             }
-
             function resetarTudo() {
-                const cir = getEl('cir');
-                const perm = getEl('perm');
-                const ctiPct = getEl('ctiPct');
-
-                if (cir) cir.value = 700;
-                if (perm) perm.value = 6.9;
-                if (ctiPct) ctiPct.value = 3;
-
+                cir.value = 700;
+                perm.value = 6.9;
+                ctiPct.value = 3;
                 ESP.forEach(e => {
                     e.qty = Math.round(700 * e.pct / 100);
                 });
-                const modalGrid = getEl('modalGrid');
+                const modalGrid = document.getElementById('modalGrid');
                 if (modalGrid && modalGrid.children.length) {
                     ESP.forEach(e => {
-                        const s = getEl(`ms-${e.id}`);
+                        const s = document.getElementById(`ms-${e.id}`);
                         if (s) s.value = e.qty;
                     });
                     atualizar();
                 }
                 calc();
-            }
-
-            function initApp() {
-                const cir = getEl('cir');
-                const perm = getEl('perm');
-                const ctiPct = getEl('ctiPct');
-                const graf = getEl('graf');
-
-                if (graf && typeof Chart !== 'undefined') {
-                    ch = new Chart(graf, {
-                        type: 'bar', 
-                        data: { labels: setores, datasets: [{ data: base, backgroundColor: cores, borderRadius: 8 }] },
-                        options: { plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 100, ticks: { callback: v => v + "%" } } } }
-                    });
-                }
-
-                if (cir) cir.addEventListener('input', calc);
-                if (perm) perm.addEventListener('input', calc);
-                if (ctiPct) ctiPct.addEventListener('input', calc);
-
-                calc();
-            }
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initApp);
-            } else {
-                initApp();
             }
         </script>
     </div>
@@ -1357,14 +1287,14 @@
                     Projeções</button>
             </div>
 
-            <div class="modal-summary">
+            <div class="modal-summary" style="grid-template-columns: repeat(5, 1fr);">
                 <div><b>Procedimentos</b><span id="mTotProc">700</span><small>/mês</small></div>
-                <div><b>Faturamento</b><span id="mTotFat">R$ 0</span></div>
+                <div style="display:none"><b>Faturamento</b><span id="mTotFat">R$ 0</span></div>
                 <div><b>Impacto Fin.</b><span id="mImpacto" style="font-weight:700">R$
-                        0,00</span><small>Diferença</small></div>
-                <div><b>Custo</b><span id="mTotCusto">R$ 0</span></div>
+                        0,00</span><small>Δ Custo − Δ Faturamento</small></div>
+                <div style="display:none"><b>Custo</b><span id="mTotCusto">R$ 0</span></div>
                 <div><b>Ticket Médio Fat. s/ incentivo</b><span id="mTicket">R$ 0</span></div>
-                <div><b>Custo médio</b><span id="mCustoMedio">R$ 0</span></div>
+                <div><b>Ticket Médio Custo</b><span id="mCustoMedio">R$ 0</span></div>
                 <div><b>Permanência Média</b><span id="mPerm">0d</span></div>
             </div>
 
