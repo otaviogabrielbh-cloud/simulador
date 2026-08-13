@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Simulador HMDCC</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Inter, Arial;
+            background: #f4f8fb;
+            color: #183344;
+            margin: 20px
+        }
+
+        .wrap {
+            max-width: 1200px;
+            margin: auto
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 15px 0
+        }
+
+        .card {
+            background: #fff;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #dce7ee;
+            box-shadow: 0 2px 8px rgba(24, 51, 68, .08);
+        }
+
+        .dashboard-title {
+            margin: 0;
+            color: #0f4c81;
+            font-size: clamp(1.55rem, 3vw, 2.1rem);
+        }
+
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
+            padding: 20px;
+            border-radius: 14px;
+            color: #fff;
+            background: linear-gradient(135deg, #0f4c81, #176d9f);
+            box-shadow: 0 8px 20px rgba(15, 76, 129, .18);
+        }
+
+        .hero .dashboard-title {
+            color: #fff;
+        }
+
+        .hero p {
+            margin: 6px 0 0;
+            opacity: .9;
+        }
+
+        .hero-metric {
+            flex: 0 0 auto;
+            padding: 10px 14px;
+            border-radius: 10px;
+            text-align: center;
+            background: rgba(255, 255, 255, .16);
+        }
+
+        .hero-metric strong {
+            display: block;
+            font-size: 1.35rem;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 24px 0 2px !important;
+            color: #0f4c81 !important;
+            font-size: .85rem !important;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .section-title::before {
+            width: 4px;
+            height: 16px;
+            border-radius: 4px;
+            background: #2a9d8f;
+            content: "";
+        }
+
+        .section-title.sadt {
+            color: #1f5f9e !important;
+        }
+
+        .section-title.sadt::before {
+            background: #4f86c6;
+        }
+
+        .section-title.procedimentos {
+            color: #a15c00 !important;
+        }
+
+        .section-title.procedimentos::before {
+            background: #e49a2e;
+        }
+
+        .section-title.laboratorio {
+            color: #a23c46 !important;
+        }
+
+        .section-title.laboratorio::before {
+            background: #d96b76;
+        }
+
+        .section-title.nir {
+            color: #6b4a9a !important;
+        }
+
+        .section-title.nir::before {
+            background: #9170be;
+        }
+
+        .section-title.cme {
+            color: #0d7a7a !important;
+        }
+
+        .section-title.cme::before {
+            background: #38b2ac;
+        }
+
+        .cards.cme .card {
+            background: #e0f2f1 !important;
+            border-left-color: #38b2ac;
+        }
+
+        .cards.cme .card h2 {
+            color: #0d7a7a;
+        }
+
+        .section-title.ambulatorio {
+            color: #237453 !important;
+        }
+
+        .section-title.ambulatorio::before {
+            background: #4eaa7f;
+        }
+
+        .card h2 {
+            margin: 8px 0 4px;
+            color: #0f4c81;
+            font-size: 1.55rem;
+        }
+
+        .card small {
+            color: #526b79;
+            line-height: 1.4;
+        }
+
+        .cards.sadt .card {
+            background: #eaf2ff !important;
+            border-left-color: #4f86c6;
+        }
+
+        .cards.procedimentos .card {
+            background: #fff4e1 !important;
+            border-left-color: #e49a2e;
+        }
+
+        .cards.laboratorio .card {
+            background: #feefee !important;
+            border-left-color: #d96b76;
+        }
+
+        .cards.nir .card {
+            background: #f3edff !important;
+            border-left-color: #9170be;
+        }
+
+        .cards.ambulatorio .card {
+            background: #e8f7ee !important;
+            border-left-color: #4eaa7f;
+        }
+
+        .section-title.faturamento {
+            color: #b57a00 !important;
+        }
+
+        .section-title.faturamento::before {
+            background: #dca11d;
+        }
+
+        .cards.faturamento .card {
+            background: #fef9eb !important;
+            border-left-color: #dca11d;
+        }
+
+        .cards.faturamento .card h2 {
+            color: #996500;
+        }
+
+        .cards.sadt .card h2 {
+            color: #1f5f9e;
+        }
+
+        .cards.procedimentos .card h2 {
+            color: #a15c00;
+        }
+
+        .cards.laboratorio .card h2 {
+            color: #a23c46;
+        }
+
+        .cards.nir .card h2 {
+            color: #6b4a9a;
+        }
+
+        .cards.ambulatorio .card h2 {
+            color: #237453;
+        }
+
+        .methodology {
+            margin-top: 28px;
+            padding: 0 16px;
+            border: 1px solid #dce7ee;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(24, 51, 68, .06);
+        }
+
+        .methodology summary {
+            padding: 16px 0;
+            cursor: pointer;
+            color: #0f4c81;
+            font-weight: 700;
+        }
+
+        .methodology[open] summary {
+            border-bottom: 1px solid #dce7ee;
+        }
+
+        label {
+            font-weight: bold
+        }
+
+        input[type=range] {
+            width: 100%
+        }
+
+        canvas {
+            max-width: 100%;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 14px;
+            padding: 24px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 100vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, .25);
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 1.6rem;
+            cursor: pointer;
+            color: #888;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #000
+        }
+
+        .modal-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .modal-summary div {
+            background: #f4f8fb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            text-align: center;
+        }
+
+        .modal-summary b {
+            display: block;
+            font-size: 0.7rem;
+            color: #526b79;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .modal-summary span {
+            display: block;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #0f4c81;
+            margin-top: 2px;
+        }
+
+        .modal-summary small {
+            font-size: 0.7rem;
+            color: #888
+        }
+
+        .modal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .modal-grid .card {
+            padding: 10px 12px;
+            border-left: 4px solid #79a8c6;
+        }
+
+        .modal-grid .card b {
+            font-size: 0.85rem
+        }
+
+        .modal-grid .card input[type=range] {
+            width: 100%;
+            margin: 4px 0;
+            accent-color: #0f4c81;
+        }
+
+        .modal-grid .card .esp-info {
+            font-size: 0.75rem;
+            color: #526b79;
+            line-height: 1.5;
+        }
+
+        .modal-grid .card .esp-pct {
+            font-weight: 700;
+            font-size: 0.85rem;
+            min-width: 44px;
+            text-align: right;
+        }
+
+        .btn-reset-modal {
+            background: #fff0f0;
+            color: #d62828;
+            border: 1px solid #fecaca;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-reset-modal:hover {
+            background: #d62828;
+            color: #ffffff;
+            border-color: #d62828;
+        }
+
+        .btn-hero-reset {
+            background: rgba(255, 255, 255, .16);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, .3);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: .82rem;
+            white-space: nowrap;
+            transition: background 0.2s ease, transform 0.1s ease;
+        }
+
+        .btn-hero-reset:hover {
+            background: rgba(255, 255, 255, .3);
+            transform: scale(1.02);
+        }
+
+        .card-clickable {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card-clickable:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(24, 51, 68, .14);
+        }
+
+        @media (max-width: 900px) {
+            body {
+                margin: 16px;
+            }
+
+            .cards {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .cards[style*="grid-template-columns"] {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                margin: 12px;
+            }
+
+            .grid,
+            .cards,
+            .cards[style*="grid-template-columns"] {
+                grid-template-columns: minmax(0, 1fr) !important;
+            }
+
+            .card {
+                padding: 12px;
+            }
+
+            .hero {
+                align-items: flex-start;
+                flex-direction: column;
+                padding: 16px;
+            }
+
+            .hero-metric {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .modal-content {
+                padding: 16px;
+                border-radius: 10px;
+            }
+
+            .modal-summary {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+
+            .modal-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <header class="hero">
+            <div>
+                <h1 class="dashboard-title">Simulador de Impacto Cirúrgico</h1>
+                <p>Hospital Metropolitano Dr. Célio de Castro</p>
+            </div>
+            <button onclick="resetarTudo()" class="btn-hero-reset">↺ Resetar</button>
+        </header>
+        <div class="grid" style="grid-template-columns:repeat(3,1fr)">
+            <div class="card"><label>Cirurgias/mês: <span id="cirTxt">700</span></label><input id="cir" type="range"
+                    min="600" max="1500" value="700"></div>
+            <div class="card"><label>Média de permanência: <span id="permTxt">6.9</span> dias</label><input id="perm"
+                    type="range" min="1" max="15" step="0.1" value="6.9"></div>
+            <div class="card"><label>% CTI: <span id="ctiPctTxt">3</span>%</label><input id="ctiPct" type="range"
+                    min="0" max="50" step="0.5" value="3"></div>
+        </div>
+        <div class="grid" style="grid-template-columns:1fr 1fr">
+            <div class="card card-clickable" style="cursor:pointer;text-align:center;background:#e8f0fe;border:2px solid #0f4c81"
+                onclick="toggleEstrat()">
+                <b style="color:#0f4c81;font-size:0.9rem">+ Estratificação Cirúrgica</b>
+                <div style="font-size:0.72rem;color:#526b79;margin-top:4px">Clique para comparar especialidades</div>
+            </div>
+            <div class="card card-clickable" style="cursor:pointer;text-align:center;background:#e6f4ea;border:2px solid #1e8e3e"
+                onclick="toggleEstrat('2')">
+                <b style="color:#1e8e3e;font-size:0.9rem">+ Estratificação Cirúrgica - Com Diária</b>
+                <div style="font-size:0.72rem;color:#526b79;margin-top:4px">Clique para comparar especialidades</div>
+            </div>
+        </div>
+        <div class="cards">
+            <div class="card"><b>Crescimento</b>
+                <div id="cres"></div>
+            </div>
+            <div class="card"><b>Leitos adicionais</b>
+                <div id="leitos"></div>
+            </div>
+            <div class="card"><b>CTI adicionais</b>
+                <div id="cti"></div>
+            </div>
+        </div>
+        <div class="section-title sadt">SADT - Imagem</div>
+        <div class="cards sadt" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr 1fr">
+            <div class="card" style="background:hsl(217, 71%, 84%)"><b>Raio-X</b>
+                <div id="radio"></div>
+            </div>
+            <div class="card" style="background:#acc7fa"><b>Tomografia</b>
+                <div id="tomo"></div>
+            </div>
+            <div class="card" style="background:#a1c3ff"><b>Ultrassom</b>
+                <div id="us"></div>
+            </div>
+            <div class="card" style="background:#97bcfd"><b>Duplex</b>
+                <div id="duplex"></div>
+            </div>
+            <div class="card" style="background:#8db5f5"><b>Ressonância</b>
+                <div id="rm"></div>
+            </div>
+            <div class="card" style="background:#c5b4e3"><b>Ecocardiografia</b>
+                <div id="eco"></div>
+            </div>
+        </div>
+        <div class="section-title procedimentos">Procedimentos</div>
+        <div class="cards procedimentos">
+            <div class="card" style="background:#f0d9b5"><b>Colonoscopia</b>
+                <div id="endo"></div>
+            </div>
+            <div class="card" style="background:#e8d5b0"><b>Endoscopia</b>
+                <div id="endoscopia"></div>
+            </div>
+        </div>
+        <div class="section-title laboratorio">Impacto no Laboratório</div>
+        <div class="cards laboratorio" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="card" style="background:#ffabab"><b>Total de Exames</b>
+                <div id="labTotal"></div>
+            </div>
+            <div class="card" style="background:#ffabab"><b>Média por Paciente</b>
+                <div id="labMediaCir"></div>
+            </div>
+            <div class="card" style="background:#ffabab"><b>Crescimento</b>
+                <div id="labCresc"></div>
+            </div>
+        </div>
+        <div class="cards laboratorio">
+            <div class="card" style="background:#f8c7c7"><b>Hemograma</b>
+                <div id="labHemo"></div>
+            </div>
+            <div class="card" style="background:#f8c7c7"><b>Creatinina</b>
+                <div id="labCrea"></div>
+            </div>
+            <div class="card" style="background:#f8c7c7"><b>Ureia</b>
+                <div id="labUreia"></div>
+            </div>
+            <div class="card" style="background:#f8c7c7"><b>Potássio</b>
+                <div id="labPotassio"></div>
+            </div>
+        </div>
+        <div class="section-title cme">CME — Central de Material Esterilizado</div>
+        <div class="cards cme" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="card"><b>Pacotes processados/dia</b>
+                <div id="cmeItens"></div>
+            </div>
+            <div class="card"><b>THE (Total Horas Enf.)</b>
+                <div id="cmeThe"></div>
+            </div>
+            <div class="card"><b>Capacidade da CME</b>
+                <div id="cmeCap"></div>
+            </div>
+        </div>
+        <canvas id="graf"></canvas>
+        <div class="section-title nir">NIR — Núcleo Interno de Regulação</div>
+        <div style="margin:-6px 0 12px;font-size:.82rem;font-weight:600;color:#6b4a9a;letter-spacing:.03em">
+            Pré-Faturamento</div>
+        <div class="cards nir">
+            <div class="card"><b>Demanda de AIHs</b>
+                <div id="nirDemanda"></div>
+            </div>
+            <div class="card"><b>Déficit (1 FTE)</b>
+                <div id="nirDeficit"></div>
+            </div>
+            <div class="card"><b>FTE Recomendado</b>
+                <div id="nirFte"></div>
+            </div>
+            <div class="card"><b>Status da Equipe</b>
+                <div id="nirStatus"></div>
+            </div>
+        </div>
+        <div style="margin:18px 0 12px;font-size:.82rem;font-weight:600;color:#6b4a9a;letter-spacing:.03em">Ocupação dos
+            Leitos</div>
+        <div class="cards nir">
+            <div class="card"><b>Demanda Diária</b>
+                <div id="nirOcupDemanda"></div>
+            </div>
+            <div class="card"><b>Capacidade da Equipe (12/36)</b>
+                <div id="nirOcupCapacidade"></div>
+            </div>
+            <div class="card"><b>Cenário Diurno</b>
+                <div id="nirOcupDiurno"></div>
+            </div>
+            <div class="card"><b>Cenário 24h</b>
+                <div id="nirOcup24h"></div>
+            </div>
+        </div>
+        <div class="section-title ambulatorio">Ambulatório — Pré-Operatório</div>
+        <div class="cards ambulatorio">
+            <div class="card" style="background:#d4edda"><b>Pacientes do Amb.</b>
+                <div id="ambPacientes"></div>
+            </div>
+            <div class="card" style="background:#d4edda"><b>Consultas/mês</b>
+                <div id="ambConsultas"></div>
+            </div>
+            <div class="card" style="background:#d4edda"><b>Ocupação</b>
+                <div id="ambOcupacao"></div>
+            </div>
+        </div>
+        <div class="section-title faturamento">Faturamento e Auditoria Hospitalar</div>
+        <div class="cards faturamento" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="card"><b>AIHs Projetadas</b>
+                <div id="fatVolume"></div>
+            </div>
+            <div class="card"><b>Dimensionamento da Equipe</b>
+                <div id="fatEquipe"></div>
+            </div>
+            <div class="card"><b>Produtividade Média</b>
+                <div id="fatProdutividade"></div>
+            </div>
+            <div class="card"><b>Status & Impacto Operacional</b>
+                <div id="fatStatus"></div>
+            </div>
+        </div>
+        <details class="methodology">
+            <summary>Metodologia, premissas e impacto esperado por setor</summary>
+            <p><strong>Considerando o cenário do Hospital Metropolitano Dr. Célio de Castro</strong>, o hospital possui
+                aproximadamente 460 leitos, 80 leitos de CTI, 16 salas cirúrgicas e realiza cerca de 6.200 cirurgias/ano
+                (aproximadamente 650 a 700 cirurgias/mês, dependendo do período analisado). É um hospital 100% SUS,
+                referência em cirurgia geral, ortopedia, vascular, neurocirurgia, urologia e neurologia.</p>
+
+            <h3>Cenário proposto</h3>
+            <p><strong>Situação atual:</strong><br>• Cirurgias/mês: 700</p>
+            <p><strong>Meta:</strong><br>• Cirurgias/mês: 920</p>
+            <p><strong>Incremento:</strong><br>• +220 cirurgias/mês<br>• Crescimento de 31,4% na produção cirúrgica.</p>
+
+            <h3>Impacto esperado por setor</h3>
+
+            <p><strong>1. Centro Cirúrgico</strong><br>É o setor mais impactado. Considerando 22 dias úteis/mês e
+                aumento de 300 cirurgias, teremos 300 ÷ 22 = 13,6 cirurgias extras por dia. Com 16 salas cirúrgicas:
+                13,6 ÷ 16 = 0,85 cirurgia adicional/sala/dia. Na prática isso representa ampliação do terceiro turno,
+                utilização do período noturno, utilização integral dos sábados e redução do tempo ocioso entre
+                cirurgias. <strong>Impacto: MUITO ALTO</strong></p>
+
+            <p><strong>2. CME (Central de Material Esterilizado)</strong><br>
+                A CME possui capacidade operacional estimada para o processamento de aproximadamente <strong>20.000
+                    pacotes/ mês</strong>.
+                Atualmente, a produção média é de <strong>17.670 pacotes mensais</strong> (≈589 itens/dia), evidenciando
+                uma capacidade ociosa de
+                2.330 pacotes/mês, equivalente a <strong>11,7% da capacidade instalada</strong>.<br><br>
+                Cada cirurgia adicional representa <strong>14 itens/dia</strong> no processamento da CME. Com 30
+                dias/mês,
+                cada cirurgia extra consome 14 × 30 = <strong>420 pacotes/mês</strong> da capacidade instalada.<br><br>
+                <u>Fórmula:</u> Pacotes/dia = 589 + (cirurgias − 700) × 14<br>
+                <u>Limite de capacidade (20.000 Pacotes/mês):</u><br>
+                • 20.000 pacotes/mês ÷ 30 dias ≈ <strong>667 Pacotes/dia</strong><br>
+                • Cirurgias no limite: 700 + (667 − 589) ÷ 14 ≈ <strong>706 cirurgias/mês</strong><br>
+                • Abaixo de 706 cirurgias/mês: capacidade folgada (até 6 cirurgias adicionais)<br><br>
+                <u>Projeção para a meta (920 cirurgias/mês):</u><br>
+                • pacotes/dia: 589 + (920 − 700) × 14 = <strong>3.669 Pacotes/dia</strong> (110.070 Pacotes/mês)<br>
+                • Capacidade: 110.070 ÷ 20.000 = <strong>550%</strong> — capacidade severamente excedida<br>
+                • Excesso: <strong>90.070 Pacotes/mês</strong> além da capacidade instalada<br>
+                • Profissionais: mantidos em <strong>37</strong> até o limite de 20.000 Pacotes/mês (~706 cir.)<br>
+                • Acima disso: necessidade urgente de redimensionamento da equipe e autoclaves<br><br>
+                <strong>Impacto: Crítico — a CME consegue absorver até ~706 cirurgias/mês (apenas +6 cir.).
+                    Acima disso, a demanda de itens cresce 14 por cirurgia/dia, exigindo ampliação imediata.</strong>
+            </p>
+
+            <p><strong>3. Internação Cirúrgica</strong><br>Considerando a taxa de ocupação atual (80 leitos para 700
+                cirurgias/mês com 6.9 dias de permanência), cada cirurgia consome efetivamente 0,114 leito. Para 220
+                cirurgias adicionais: 220 × 0,114 ≈ 25 leitos ocupados continuamente. Necessidade
+                de aproximadamente 25 leitos cirúrgicos extras ou redução da permanência média. <strong>Impacto: Muito
+                    Alto</strong></p>
+
+            <p><strong>4. CTI</strong><br>Considerando 3% necessitam CTI: 220 × 3% ≈ 7 pacientes adicionais/mês.
+                Permanência média
+                6.9 dias: 7 × 6.9 ≈ 48 pacientes-dia. 48 ÷ 30 ≈ 1,6 leitos de CTI permanentemente ocupados. Necessidade
+                entre 1 a 2 leitos adicionais caso não haja aumento da rotatividade. <strong>Impacto: Moderado</strong>
+            </p>
+
+            <p><strong>5. Hemodinâmica</strong><br>Dependendo do perfil cirúrgico (vascular, neurologia, AVC,
+                endovascular), pode haver aumento entre 20% e 40% na ocupação. Principal impacto: agenda, enfermagem,
+                técnicos de radiologia e anestesia.</p>
+
+            <p><strong>6. Laboratório</strong><br>Base real de 52.697 exames no semestre (média de 8.783/mês) em 2.065
+                atendimentos, resultando em 26 exames/paciente. Apenas 884 exames (1,7%) são do Hospital Dia Centro
+                Cirúrgico; os demais 51.813 (98,3%) são das enfermarias (8ºN: 28.575, 8ºS: 23.238).<br><br>
+                <u>Modelo ajustado por setor:</u><br>
+                • HDCC (cirúrgico): 147 × (cirurgias/700) — escala com cirurgias<br>
+                • Enfermaria: 8.636 × (cirurgias/700) × (permanência/6,9) — escala com paciente-dia<br>
+                • Total = HDCC + Enfermaria<br><br>
+                <u>Projeção para a meta (920 cirurgias/mês, 6,9 dias):</u><br>
+                • HDCC: 147 × 1,314 ≈ 193 exames/mês<br>
+                • Enfermaria: 8.636 × 1,314 ≈ 11.348 exames/mês<br>
+                • Total: ≈ 11.541 exames/mês (+2.758, crescimento de 31,4% apenas na fração cirúrgica)<br>
+                Destaque para Imunoquímica (68,5% do total) com maior impacto nas enfermarias.
+                <strong>Impacto: Moderado a Alto</strong>
+            </p>
+
+            <p><strong>7. Diagnóstico por Imagem</strong><br><br>
+                <u>Raio-X</u><br>
+                <u>Base de dados (jan-jun/2026):</u><br>
+                • Total de exames de raio-X no período: 13.762 exames<br>
+                • Total de pacientes com raio-X: 4.396 pacientes<br>
+                • Proporção cirúrgica: 16,4%<br>
+                • Setores considerados como cirúrgicos: Int 8° N, Int 8° S e Hospital Dia<br><br>
+                <u>Extração cirúrgica:</u><br>
+                • Exames cirúrgicos no semestre: 13.762 × 16,4% ≈ 2.257 exames<br>
+                • Pacientes cirúrgicos com raio-X: 4.396 × 16,4% ≈ 721 pacientes<br>
+                • Média: 3,13 exames/paciente cirúrgico no semestre<br>
+                • Média mensal: 2.257 ÷ 6 ≈ 376 exames/mês (base atual: 700 cirurgias, 6,9 dias de permanência)<br><br>
+                <u>Modelo de proporcionalidade:</u><br>
+                • Taxa por paciente-dia: 376 ÷ (700 × 6,9) = 0,078 exame/paciente-dia<br>
+                • Fórmula: <strong>Raio-X/mês = 376 × (cirurgias/700) × (permanência/6,9)</strong><br><br>
+                <u>Projeção para a meta (920 cirurgias/mês):</u><br>
+                • 376 × (920 ÷ 700) × (6,9 ÷ 6,9) = 376 × 1,314 ≈ 494 exames/mês<br>
+                • Acréscimo: +118 exames/mês<br>
+                • Impacto direto na demanda da sala de raio-X, equipe de técnicos e laudo médico.<br>
+                <strong>Impacto: Moderado</strong><br><br>
+                <u>Tomografia</u><br>
+                <u>Base de dados (jan-jun/2026):</u><br>
+                • Total de exames de tomografia no período: 7.611 exames<br>
+                • Total de pacientes com tomografia: 3.429 pacientes<br>
+                • Proporção cirúrgica: 17,59%<br>
+                • Setores considerados como cirúrgicos: Int 8° N, Int 8° S e Hospital Dia<br><br>
+                <u>Extração cirúrgica:</u><br>
+                • Exames cirúrgicos no semestre: 7.611 × 17,59% ≈ 1.339 exames<br>
+                • Pacientes cirúrgicos com tomografia: 3.429 × 17,59% ≈ 603 pacientes<br>
+                • Média: 2,22 exames/paciente cirúrgico no semestre<br>
+                • Média mensal: 1.339 ÷ 6 ≈ 223 exames/mês (base atual: 700 cirurgias, 6,9 dias de permanência)<br><br>
+                <u>Modelo de proporcionalidade:</u><br>
+                • Taxa por paciente-dia: 223 ÷ (700 × 6,9) = 0,046 exame/paciente-dia<br>
+                • Fórmula: <strong>Tomografia/mês = 223 × (cirurgias/700) × (permanência/6,9)</strong><br><br>
+                <u>Projeção para a meta (920 cirurgias/mês):</u><br>
+                • 223 × (920 ÷ 700) × (6,9 ÷ 6,9) = 223 × 1,314 ≈ 293 exames/mês<br>
+                • Acréscimo: +70 exames/mês<br>
+                • Impacto direto na demanda do tomógrafo, equipe de técnicos, contraste e laudo médico.<br>
+                <strong>Impacto: Moderado</strong><br><br>
+                <u>Ultrassonografia</u><br>
+                <u>Base de dados (jan-jun/2026):</u><br>
+                • Total de exames de ultrassonografia no período: 1.826 exames<br>
+                • Total de pacientes com ultrassonografia: 1.518 pacientes<br>
+                • Proporção cirúrgica: 15,67%<br>
+                • Setores considerados como cirúrgicos: Int 8° N, Int 8° S e Hospital Dia<br><br>
+                <u>Extração cirúrgica:</u><br>
+                • Exames cirúrgicos no semestre: 1.826 × 15,67% ≈ 286 exames<br>
+                • Pacientes cirúrgicos com ultrassonografia: 1.518 × 15,67% ≈ 238 pacientes<br>
+                • Média: 1,20 exames/paciente cirúrgico no semestre<br>
+                • Média mensal: 286 ÷ 6 ≈ 48 exames/mês (base atual: 700 cirurgias, 6,9 dias de permanência)<br><br>
+                <u>Modelo de proporcionalidade:</u><br>
+                • Taxa por paciente-dia: 48 ÷ (700 × 6,9) = 0,010 exame/paciente-dia<br>
+                • Fórmula: <strong>Ultrassom/mês = 48 × (cirurgias/700) × (permanência/6,9)</strong><br><br>
+                <u>Projeção para a meta (920 cirurgias/mês):</u><br>
+                • 48 × (920 ÷ 700) × (6,9 ÷ 6,9) = 48 × 1,314 ≈ 63 exames/mês<br>
+                • Acréscimo: +15 exames/mês<br>
+                <strong>Impacto: Baixo a Moderado</strong><br><br>
+                <u>Duplex Scan / Doppler</u><br>
+                <u>Base de dados (jan-jun/2026):</u><br>
+                • Total de exames de duplex scan no período: 554 exames<br>
+                • Total de pacientes com duplex scan: 433 pacientes<br>
+                • Proporção cirúrgica: 24,55%<br>
+                • Setores considerados como cirúrgicos: Int 8° N, Int 8° S e Hospital Dia<br><br>
+                <u>Extração cirúrgica:</u><br>
+                • Exames cirúrgicos no semestre: 554 × 24,55% ≈ 136 exames<br>
+                • Pacientes cirúrgicos com duplex scan: 433 × 24,55% ≈ 106 pacientes<br>
+                • Média: 1,28 exames/paciente cirúrgico no semestre<br>
+                • Média mensal: 136 ÷ 6 ≈ 23 exames/mês (base atual: 700 cirurgias, 6,9 dias de permanência)<br><br>
+                <u>Modelo de proporcionalidade:</u><br>
+                • Taxa por paciente-dia: 23 ÷ (700 × 6,9) = 0,005 exame/paciente-dia<br>
+                • Fórmula: <strong>Duplex/mês = 23 × (cirurgias/700) × (permanência/6,9)</strong><br><br>
+                <u>Projeção para a meta (920 cirurgias/mês):</u><br>
+                • 23 × (920 ÷ 700) × (6,9 ÷ 6,9) = 23 × 1,314 ≈ 30 exames/mês<br>
+                • Acréscimo: +7 exames/mês<br>
+                <strong>Impacto: Baixo</strong>
+            </p>
+            <p><strong>7.1 Ressonância Magnética</strong><br>
+                <u>Base de dados (jan-jun/2026):</u><br>
+                • Total de exames de RM no período: 290 exames<br>
+                • Total de pacientes com RM: 180 pacientes<br>
+                • Proporção cirúrgica: 59,31%<br>
+                • Setores considerados como cirúrgicos: Int 8° N, Int 8° S<br><br>
+                <u>Extração cirúrgica:</u><br>
+                • Exames cirúrgicos no semestre: 290 × 59,31% ≈ 172 exames<br>
+                • Pacientes cirúrgicos com RM: 180 × 59,31% ≈ 107 pacientes<br>
+                • Média: 1,61 exames/paciente cirúrgico no semestre<br>
+                • Média mensal: 172 ÷ 6 ≈ 29 exames/mês (base atual: 700 cirurgias, 6,9 dias de permanência)<br><br>
+                <u>Modelo de proporcionalidade:</u><br>
+                • Taxa por paciente-dia: 29 ÷ (700 × 6,9) = 0,006 exame/paciente-dia<br>
+                • Fórmula: <strong>RM/mês = 29 × (cirurgias/700) × (permanência/6,9)</strong><br><br>
+                <u>Projeção para a meta (920 cirurgias/mês):</u><br>
+                • 29 × (920 ÷ 700) × (6,9 ÷ 6,9) = 29 × 1,314 ≈ 38 exames/mês<br>
+                • Acréscimo: +9 exames/mês<br>
+                <strong>Impacto: Baixo</strong>
+            </p>
+
+            <p><strong>8. Farmácia</strong><br>Incremento direto em antibióticos, anestésicos, opioides, sedativos,
+                soluções, nutrição e materiais OPME. Estimativa de crescimento de 40 a 60% do consumo ligado ao bloco
+                cirúrgico.</p>
+
+            <p><strong>9. Almoxarifado</strong><br>Maior consumo de compressas, fios, campos, aventais, luvas, seringas,
+                equipos e materiais descartáveis. Necessidade de revisão dos pontos de ressuprimento.</p>
+
+            <p><strong>10. Banco de Sangue</strong><br>Supondo 10%: 300 × 10% = 30 pacientes. Se média 2 bolsas: ≈ 60
+                bolsas/mês. Necessidade de ampliar estoque.</p>
+
+            <p><strong>11. Nutrição</strong><br> Existe uma migração do custo com o leito clinico para o cirurgico, caso
+                aumente o número de leitos cirurgicos conseguentimente redução do leito clinico.</p>
+
+            <p><strong>12. Higienização</strong><br>Mais altas, limpezas terminais e preparo de salas. Estimativa: 50%
+                mais limpezas relacionadas ao centro cirúrgico.</p>
+
+            <p><strong>13. Rouparia</strong><br>Aumento proporcional de campos, aventais e compressas (cirurgicos)
+                Incremento esperado: 20 a 30%.</p>
+
+            <p><strong>14. Engenharia Clínica</strong><br>Maior utilização de mesas cirúrgicas, bisturis elétricos,
+                focos, ventiladores e monitores. Necessidade de manutenção preventiva mais frequente e redução do tempo
+                de indisponibilidade.</p>
+
+            <p><strong>15. Engenharia Hospitalar</strong><br>Maior demanda de gases medicinais, climatização, energia e
+                água. <strong>Impacto: Moderado</strong></p>
+
+            <p><strong>16. NIR (Núcleo Interno de Regulação)</strong><br>Setor crucial. Necessário maior giro de leitos,
+                redução do tempo médio de permanência, alta precoce e gerenciamento diário de ocupação. Caso contrário,
+                o gargalo deixa de ser o centro cirúrgico e passa a ser a falta de leitos.</p>
+
+            <p><strong>17. Faturamento / Auditoria</strong><br>
+                O Núcleo de Faturamento e Auditoria Hospitalar é diretamente impactado pelo volume assistencial e pela
+                quantidade de AIHs geradas pelas internações cirúrgicas.
+                Atualmente, a instituição opera em capacidade máxima devido à <strong>inexistência de uma etapa de
+                    pré-faturamento estruturada</strong>.<br><br>
+                <u>Premissas de dimensionamento:</u><br>
+                • <strong>Proporção de AIHs:</strong> Estima-se a emissão de aproximadamente 1,15 AIHs por
+                internação.<br>
+                • <strong>Produtividade esperada:</strong> Entre 322 e 403 AIHs processadas por profissional ao mês,
+                dependendo da função.<br><br>
+                <u>Cenários de Produção Analisados:</u><br>
+                • <strong>Cenário Atual (Até 1.400 internações):</strong> Demanda de ~1.610 AIHs. Suportado por equipe
+                de 4 auditores, 2 enfermeiros auditores, 5 faturistas e 3 auxiliares/assistentes administrativos.<br>
+                • <strong>Cenário de Expansão (Até 1.800 internações):</strong> Crescimento de 28,6% assistencial,
+                projetando ~2.070 AIHs. A equipe mínima necessária sobe para 6 auditores, 3 enfermeiros auditores, 6
+                faturistas e 4 auxiliares/assistentes administrativos. O gatilho para contratação ocorre imediatamente a
+                partir deste nível.<br>
+                • <strong>Cenário de Maior Expansão (Até 2.200 internações):</strong> Projeta-se ~2.530 AIHs, exigindo
+                uma estrutura de 7 auditores, 3 enfermeiros auditores, 7 faturistas e 4 auxiliares/assistentes
+                administrativos para evitar sobrecarga, atrasos e glosas assistenciais.<br><br>
+                <strong>Impacto: Alto. O dimensionamento adequado e a estruturação de uma etapa de pré-faturamento são
+                    fundamentais para assegurar a sustentabilidade financeira frente à expansão cirúrgica.</strong>
+            </p>
+
+            <p><strong>18. Hotelaria</strong><br>Maior movimentação de acompanhantes, limpeza, transporte interno e
+                elevadores.</p>
+
+            <p><strong>19. Transporte Interno</strong><br>Mais deslocamentos de pacientes, exames, centro cirúrgico e
+                hemodinâmica. Incremento estimado: 40%.</p>
+
+            <p><strong>20. Equipe Assistencial</strong><br>Maior impacto em enfermagem, técnicos, fisioterapia,
+                fonoaudiologia, terapia ocupacional, psicologia e assistência social, principalmente na recuperação
+                pós-operatória.</p>
+
+            <p><strong>NIR — Núcleo Interno de Regulação / Pré-Faturamento</strong><br>
+                A simulação considera <strong>1 profissional administrativo (terceirizado)</strong> com carga horária
+                total de <strong>9h/dia (540 min)</strong>. Descontos: 60 min (almoço) + 20 min (café) + 15 min
+                (banheiro) = 95 min → <strong>carga líquida de 445 min/dia</strong>.<br><br>
+                <u>Volume de trabalho:</u><br>
+                • Demanda atual: <strong>1.771 AIHs/mês</strong> (base: 700 cirurgias, já incluindo 10% de
+                retrabalho)<br>
+                • Tempo por AIH: <strong>10 min</strong> (solicitação de laudo, conferência de guias, cadastro
+                CORE)<br>
+                • Demanda total: 1.771 × 10 = <strong>17.710 min/mês</strong><br><br>
+                <u>Capacidade:</u><br>
+                • 1 FTE: 445 min × 22 dias = <strong>9.790 min/mês</strong> (≈ 979 AIHs)<br>
+                • Déficit com 1 FTE: 17.710 − 9.790 = <strong>7.920 min/mês (792 AIHs)</strong><br>
+                • Horas extras necessárias (1 FTE): ≈ <strong>132h/mês</strong><br><br>
+                <u>Dimensionamento:</u><br>
+                • FTE necessário: 17.710 ÷ 9.790 = <strong>1,81 → mínimo 2 FTE</strong><br>
+                • FTE ideal (c/ segurança contra turnover): <strong>3 FTE</strong><br><br>
+                <u>Riscos com 1 FTE:</u><br>
+                • Ponto único de falha — ausência por 2 dias para o faturamento<br>
+                • Sobrecarga extrema — > 132h extras/mês, acelera burnout e aumenta glosas<br>
+                • Déficit crônico — 792 AIHs/mês acumulam e estouram o prazo de 45 dias<br><br>
+                <u>Riscos com 2 FTE:</u><br>
+                • Resolve o volume diário, mas turnover de 30% + 45 dias de treinamento para o fluxo<br>
+                • O hospital fica vulnerável à continuidade do negócio<br><br>
+                <u>Projeção para a meta (920 cirurgias/mês):</u><br>
+                • AIHs: ≈ 2.328 AIHs/mês<br>
+                • Demanda: ≈ 23.280 min/mês<br>
+                • FTE necessário: ≈ 2,38 → mínimo 3 FTE<br>
+                • Status com 1 FTE: <strong>SOBRECARGA</strong> — inviável operar com apenas 1 colaborador<br>
+                <strong>Impacto: Crítico — o NIR com 1 FTE é o principal gargalo do faturamento hospitalar.</strong>
+            </p>
+
+            <p><strong>21. Ambulatório — Pré-Operatório</strong><br>
+                O modelo de proporcionalidade considera que <strong>60% das cirurgias</strong> têm entrada pelo
+                ambulatório
+                (pré-operatório), e cada um desses pacientes realiza <strong>no mínimo 2 consultas</strong> antes da
+                cirurgia.<br><br>
+                <u>Premissas de capacidade:</u><br>
+                • 11 consultórios<br>
+                • 20 minutos por consulta<br>
+                • Funcionamento: segunda a sexta-feira, 07:00 às 19:00 (12h/dia)<br>
+                • Capacidade teórica: 396 consultas/dia | 8.712 consultas/mês<br>
+                • Absenteísmo real de 29% → capacidade real: 6.186 consultas/mês<br><br>
+                <u>Modelo de proporcionalidade:</u><br>
+                • Pacientes do ambulatório = cirurgias/mês × 60%<br>
+                • Consultas/mês = pacientes do ambulatório × 2<br>
+                • Fórmula: <strong>Consultas Amb./mês = cirurgias × 0,6 × 2</strong><br><br>
+                <u>Projeção para a meta (920 cirurgias/mês):</u><br>
+                • Pacientes: 920 × 60% = 552 pacientes/mês<br>
+                • Consultas: 552 × 2 = 1.104 consultas/mês<br>
+                • Ocupação da capacidade real: 1.104 ÷ 6.186 ≈ 17,8%<br>
+                • Capacidade folgada — impacto baixo na estrutura atual, mas requer agendamento organizado para evitar
+                gargalos operacionais.<br>
+                <strong>Impacto: Baixo</strong>
+            </p>
+        </details>
+        <script>
+            const setores = ["Centro Cir.", "CME", "Internação", "CTI", "Lab.", "Farmácia", "Sangue", "Nutrição", "Hig.", "NIR"];
+            const base = [100, 95, 90, 75, 70, 80, 55, 60, 65, 100];
+            const cores = ['#0F4C81', '#2A9D8F', '#E76F51', '#F4A261', '#457B9D', '#6A4C93', '#D62828', '#43AA8B', '#577590', '#264653'];
+            const ch = new Chart(graf, {
+                type: 'bar', data: { labels: setores, datasets: [{ data: base, backgroundColor: cores, borderRadius: 8 }] },
+                options: { plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 100, ticks: { callback: v => v + "%" } } } }
+            });
+            function calc() {
+                let t = +cir.value, p = +perm.value, c = +ctiPct.value / 100, add = t - 700;
+                cirTxt.textContent = t; permTxt.textContent = p.toFixed(1); ctiPctTxt.textContent = ctiPct.value;
+                let cresc = (add / 700) * 100;
+                const leitosBase = 80;
+                const leitosProjetados = leitosBase * (t / 700) * (p / 6.9);
+                const leitosAdicionais = leitosProjetados - leitosBase;
+                const ctiAtual = ((700 * c) * p) / 30;
+                const ctiProjetado = ((t * c) * p) / 30;
+                const ctiL = ctiProjetado - ctiAtual;
+                const fatorCirurgia = t / 700;
+                const fatorPermanencia = p / 6.9;
+                const labCirBase = Math.round(884 / 6);
+                const labWardBase = Math.round((52697 - 884) / 6);
+                const labBaseMes = Math.round(52697 / 6);
+                const labCirProjetado = labCirBase * fatorCirurgia;
+                const labWardProjetado = labWardBase * fatorCirurgia * fatorPermanencia;
+                const labProjetado = Math.round(labCirProjetado + labWardProjetado);
+                const labAdd = labProjetado - labBaseMes;
+                const labMediaBase = 26;
+                const topExames = [
+                    { nome: "Hemograma", base: Math.round(5964 / 6), id: "labHemo" },
+                    { nome: "Creatinina", base: Math.round(5529 / 6), id: "labCrea" },
+                    { nome: "Ureia", base: Math.round(5393 / 6), id: "labUreia" },
+                    { nome: "Potássio", base: Math.round(4338 / 6), id: "labPotassio" }
+                ];
+                const radioBase = 376;
+                const radioProjetado = radioBase * (t / 700) * (p / 6.9);
+                const radioAdd = radioProjetado - radioBase;
+                const tomoBase = 223;
+                const tomoProjetado = tomoBase * (t / 700) * (p / 6.9);
+                const tomoAdd = tomoProjetado - tomoBase;
+                const usBase = 48;
+                const usProjetado = usBase * (t / 700) * (p / 6.9);
+                const usAdd = usProjetado - usBase;
+                const duplexBase = 23;
+                const duplexProjetado = duplexBase * (t / 700) * (p / 6.9);
+                const duplexAdd = duplexProjetado - duplexBase;
+                const rmBase = 29;
+                const rmProjetado = rmBase * (t / 700) * (p / 6.9);
+                const rmAdd = rmProjetado - rmBase;
+                const ecoBase = 41;
+                const ecoProjetado = ecoBase * (t / 700) * (p / 6.9);
+                const ecoAdd = ecoProjetado - ecoBase;
+                const endoBase = 2;
+                const endoProjetado = endoBase * (t / 700) * (p / 6.9);
+                const endoAdd = endoProjetado - endoBase;
+                const endoscopiaBase = 12;
+                const endoscopiaProjetado = endoscopiaBase * (t / 700) * (p / 6.9);
+                const endoscopiaAdd = endoscopiaProjetado - endoscopiaBase;
+                cres.innerHTML = "<h2>" + cresc.toFixed(1) + "%</h2>";
+                document.getElementById("leitos").innerHTML = `<h2>+${leitosAdicionais.toFixed(1)}</h2><small>Atual: ${leitosBase} | Projetado: ${leitosProjetados.toFixed(1)}</small>`;
+                document.getElementById("cti").innerHTML = `<h2>+${ctiL.toFixed(1)}</h2><small>Atual: ${ctiAtual.toFixed(1)} | Projetado: ${ctiProjetado.toFixed(1)}</small>`;
+                document.getElementById("labTotal").innerHTML = `<h2>${labAdd > 0 ? '+' : ''}${labAdd.toLocaleString('pt-BR')}</h2><small>Atual: ${labBaseMes.toLocaleString('pt-BR')} → Projetado: ${labProjetado.toLocaleString('pt-BR')}</small>`;
+                document.getElementById("labMediaCir").innerHTML = `<h2>${labMediaBase}</h2><small>${labMediaBase} exames/paciente (média real)</small>`;
+                const crescPct = ((labProjetado / labBaseMes) - 1) * 100;
+                document.getElementById("labCresc").innerHTML = `<h2>+${crescPct.toFixed(1)}%</h2><small>Crescimento ponderado (cirurgia + enfermaria)</small>`;
+                topExames.forEach(ex => {
+                    const proj = Math.round(ex.base * fatorCirurgia * fatorPermanencia);
+                    const add = proj - ex.base;
+                    document.getElementById(ex.id).innerHTML = `<h2>+${add.toLocaleString('pt-BR')}</h2><small>Atual: ${ex.base.toLocaleString('pt-BR')} → Projetado: ${proj.toLocaleString('pt-BR')}</small>`;
+                });
+                const CME_ITENS_BASE = 589, CME_CAP_MES = 20000, CME_ITENS_CIR = 14;
+                const cmeItens = Math.round(CME_ITENS_BASE + ((t - 700) * CME_ITENS_CIR));
+                const cmeItensMes = cmeItens * 30;
+                const cmeCapPct = (cmeItensMes / CME_CAP_MES) * 100;
+                const cmeHeadroomCir = Math.max(0, (CME_CAP_MES - cmeItensMes) / (CME_ITENS_CIR * 30));
+                const cmeThe = cmeItens * 205.12 / 690;
+                const cmeProfBase = Math.round(CME_ITENS_BASE * 42 / 690);
+                const cmeProf = cmeItensMes <= CME_CAP_MES ? cmeProfBase : Math.round(cmeItens * 42 / 690);
+                const cmeAdd = cmeProf - cmeProfBase;
+                const cmeCapCor = cmeCapPct > 100 ? '#c0392b' : cmeCapPct > 85 ? '#e68a00' : '#0d7a7a';
+                const cmeStatus = cmeCapPct > 100 ? 'EXCEDIDA' : cmeHeadroomCir > 0 ? `${Math.floor(cmeHeadroomCir)} cir. disponíveis` : 'Lotada';
+                document.getElementById("cmeItens").innerHTML = `<h2>${cmeItens.toLocaleString('pt-BR')}</h2><small>Atual: ${CME_ITENS_BASE.toLocaleString('pt-BR')} → Projetado: ${cmeItens.toLocaleString('pt-BR')}</small>`;
+                document.getElementById("cmeThe").innerHTML = `<h2>${cmeThe.toFixed(1)}h</h2><small>Atual: ${(CME_ITENS_BASE * 205.12 / 690).toFixed(1)}h → Projetado: ${cmeThe.toFixed(1)}h</small>`;
+                document.getElementById("cmeCap").innerHTML = `<h2 style="color:${cmeCapCor}">${cmeCapPct.toFixed(1)}%</h2><small>${cmeItensMes.toLocaleString('pt-BR')}/${CME_CAP_MES.toLocaleString('pt-BR')} Pacotes/mês — ${cmeStatus}</small>`;
+                document.getElementById("radio").innerHTML = `<h2>+${Math.round(radioAdd)}</h2><small>Atual: ${Math.round(radioBase)} → Projetado: ${Math.round(radioProjetado)}</small>`;
+                document.getElementById("tomo").innerHTML = `<h2>+${Math.round(tomoAdd)}</h2><small>Atual: ${Math.round(tomoBase)} → Projetado: ${Math.round(tomoProjetado)}</small>`;
+                document.getElementById("us").innerHTML = `<h2>+${Math.round(usAdd)}</h2><small>Atual: ${Math.round(usBase)} → Projetado: ${Math.round(usProjetado)}</small>`;
+                document.getElementById("duplex").innerHTML = `<h2>+${Math.round(duplexAdd)}</h2><small>Atual: ${Math.round(duplexBase)} → Projetado: ${Math.round(duplexProjetado)}</small>`;
+                document.getElementById("rm").innerHTML = `<h2>+${Math.round(rmAdd)}</h2><small>Atual: ${Math.round(rmBase)} → Projetado: ${Math.round(rmProjetado)}</small>`;
+                document.getElementById("eco").innerHTML = `<h2>+${Math.round(ecoAdd)}</h2><small>Atual: ${Math.round(ecoBase)} → Projetado: ${Math.round(ecoProjetado)}</small>`;
+                document.getElementById("endo").innerHTML = `<h2>+${Math.round(endoAdd)}</h2><small>Atual: ${Math.round(endoBase)} → Projetado: ${Math.round(endoProjetado)}</small>`;
+                document.getElementById("endoscopia").innerHTML = `<h2>+${Math.round(endoscopiaAdd)}</h2><small>Atual: ${Math.round(endoscopiaBase)} → Projetado: ${Math.round(endoscopiaProjetado)}</small>`;
+                ch.data.datasets[0].data = base.map(v => Math.min(100, Math.round(v * (t / 920) * (p / 6.9))));
+                ch.update();
+
+                const CARGA_BRUTA = 540, DESCONTOS = 95, CARGA_LIQUIDA = 445, DIAS_UTEIS = 22, TEMPO_AIH = 10, TREINAMENTO = 45, FTE_ATUAL = 1;
+                const aihBase = 1771;
+                const aihMes = Math.round(aihBase * (t / 700));
+                const demandaMin = aihMes * TEMPO_AIH;
+                const cap1FteMin = CARGA_LIQUIDA * DIAS_UTEIS;
+                const cap1FteAih = cap1FteMin / TEMPO_AIH;
+                const deficitMin = Math.max(0, demandaMin - cap1FteMin);
+                const deficitAih = Math.max(0, aihMes - cap1FteAih);
+                const fteCalc = demandaMin / cap1FteMin;
+                const fteMinimo = Math.ceil(fteCalc);
+                const fteIdeal = fteMinimo + 1;
+                const horasExtrasMes = deficitMin / 60;
+                const horasExtrasDia = horasExtrasMes / DIAS_UTEIS;
+                const backlogAih = Math.round(deficitAih * (TREINAMENTO / 30));
+                const backlogHoras = (backlogAih * TEMPO_AIH) / 60;
+
+                document.getElementById("nirDemanda").innerHTML = `
+                    <h2>${aihMes.toLocaleString('pt-BR')} AIHs</h2>
+                    <small>${demandaMin.toLocaleString('pt-BR')} min/mês | 1 FTE: ${cap1FteAih.toLocaleString('pt-BR')} AIHs (${cap1FteMin.toLocaleString('pt-BR')} min)</small>`;
+
+                document.getElementById("nirDeficit").innerHTML = `
+                    <h2 style="color:${deficitAih > 0 ? 'red' : 'green'}">${deficitAih > 0 ? '+' : ''}${deficitAih.toLocaleString('pt-BR')} AIHs</h2>
+                    <small>${deficitMin.toLocaleString('pt-BR')} min/mês — ${horasExtrasDia.toFixed(1)}h extras/dia | Backlog ${TREINAMENTO}d: ${backlogAih.toLocaleString('pt-BR')} AIHs (${backlogHoras.toFixed(1)}h)</small>`;
+
+                document.getElementById("nirFte").innerHTML = `
+                    <h2 style="color:${FTE_ATUAL < fteMinimo ? 'red' : FTE_ATUAL < fteIdeal ? '#e68a00' : 'green'}">${FTE_ATUAL} / ${fteMinimo}-${fteIdeal}</h2>
+                    <small>Atual: ${FTE_ATUAL} FTE | Necessário: ${fteMinimo} | Ideal: ${fteIdeal} — ${FTE_ATUAL < fteMinimo ? 'Déficit crítico' : FTE_ATUAL < fteIdeal ? 'Risco de turnover' : 'Equipe segura'}</small>`;
+
+                const risco = FTE_ATUAL < fteMinimo ? 'SOBRECARGA' : FTE_ATUAL < fteIdeal ? 'ATENÇÃO' : 'NORMAL';
+                const riscoCor = FTE_ATUAL < fteMinimo ? 'red' : FTE_ATUAL < fteIdeal ? '#e68a00' : 'green';
+                const riscoDet = FTE_ATUAL < fteMinimo
+                    ? `Ponto único de falha — ${horasExtrasMes.toFixed(0)}h extras/mês necessárias`
+                    : FTE_ATUAL < fteIdeal
+                        ? 'Turnover de 30% pode parar o faturamento por 45 dias'
+                        : 'Operação segura com margem para imprevistos';
+                document.getElementById("nirStatus").innerHTML = `
+                    <h2 style="color:${riscoCor}">${risco}</h2>
+                    <small>${riscoDet}</small>`;
+
+                const OCUP_EVENTOS_DIA = 31;
+                const OCUP_TEMPO_CICLO = 63;
+                const OCUP_DEMANDA_DIA = OCUP_EVENTOS_DIA * OCUP_TEMPO_CICLO;
+                const OCUP_DEMANDA_HORAS = OCUP_DEMANDA_DIA / 60;
+                const OCUP_CAP_DIURNO_H = 24;
+                const OCUP_CAP_TOTAL_H = 36;
+                const OCUP_CAP_TOTAL_MIN = 2160;
+                const OCUP_COL_DIURNO = 4, OCUP_COL_NOTURNO = 2;
+
+                const ocupTaxaDiurno = (OCUP_DEMANDA_HORAS / OCUP_CAP_DIURNO_H) * 100;
+                const ocupDeficitDiurno = OCUP_DEMANDA_HORAS - OCUP_CAP_DIURNO_H;
+                const ocupTaxa24h = (OCUP_DEMANDA_HORAS / OCUP_CAP_TOTAL_H) * 100;
+                const ocupFolga24h = OCUP_CAP_TOTAL_H - OCUP_DEMANDA_HORAS;
+
+                document.getElementById("nirOcupDemanda").innerHTML = `
+                    <h2>${OCUP_EVENTOS_DIA} altas/dia</h2>
+                    <small>${OCUP_TEMPO_CICLO} min/ciclo (7 etapas) = ${OCUP_DEMANDA_DIA.toLocaleString('pt-BR')} min/dia (${OCUP_DEMANDA_HORAS.toFixed(2)}h)</small>`;
+
+                document.getElementById("nirOcupCapacidade").innerHTML = `
+                    <h2>3 colab./dia (2D+1N)</h2>
+                    <small>${OCUP_COL_DIURNO}D+${OCUP_COL_NOTURNO}N cadastrados | ${OCUP_CAP_TOTAL_H}h/dia (${OCUP_CAP_TOTAL_MIN} min) escala 12/36</small>`;
+
+                document.getElementById("nirOcupDiurno").innerHTML = `
+                    <h2 style="color:red">${ocupTaxaDiurno.toFixed(1)}%</h2>
+                    <small>Déficit: ${ocupDeficitDiurno.toFixed(2)}h/dia — inviável apenas no diurno. Necessário +2 colab. diurnos</small>`;
+
+                document.getElementById("nirOcup24h").innerHTML = `
+                    <h2 style="color:#e68a00">${ocupTaxa24h.toFixed(1)}%</h2>
+                    <small>Folga: ${ocupFolga24h.toFixed(2)}h/dia — limítrofe. Risco alto com pausas, lentidão e imprevistos</small>`;
+
+                const ambPct = 0.6;
+                const ambMinConsultas = 2;
+                const ambPacientes = t * ambPct;
+                const ambConsultas = ambPacientes * ambMinConsultas;
+                const ambCapacidadeDia = 396;
+                const ambDiasUteis = 22;
+                const ambCapacidadeMes = ambCapacidadeDia * ambDiasUteis;
+                const ambAbsenteismo = 0.29;
+                const ambCapacidadeReal = ambCapacidadeMes * (1 - ambAbsenteismo);
+                const ambOcupacaoPct = (ambConsultas / ambCapacidadeReal) * 100;
+                const ambStatusCor = ambOcupacaoPct > 80 ? 'red' : ambOcupacaoPct > 50 ? '#e68a00' : 'green';
+                const ambStatusTxt = ambOcupacaoPct > 80 ? 'Alta' : ambOcupacaoPct > 50 ? 'Atenção' : 'Normal';
+                document.getElementById("ambPacientes").innerHTML = `<h2>${Math.round(ambPacientes)}</h2><small>${(ambPct * 100)}% de ${t} cirurgias/mês</small>`;
+                document.getElementById("ambConsultas").innerHTML = `<h2>${Math.round(ambConsultas)}</h2><small>${ambMinConsultas} consultas/paciente (mínimo)</small>`;
+                document.getElementById("ambOcupacao").innerHTML = `<h2 style="color:${ambStatusCor}">${ambOcupacaoPct.toFixed(1)}%</h2><small>${Math.round(ambConsultas)} de ${Math.round(ambCapacidadeReal).toLocaleString('pt-BR')} consultas — ${ambStatusTxt}</small>`;
+
+                // Faturamento e Auditoria Hospitalar
+                const fatInternacoes = t * 2;
+                const fatAihs = Math.round(fatInternacoes * 1.15);
+
+                let fatAuditores = 4;
+                let fatEnfermeiros = 2;
+                let fatFaturistas = 5;
+                let fatAuxiliares = 3;
+                let cenarioNome = "Cenário Atual";
+
+                if (fatInternacoes > 1400 && fatInternacoes <= 1800) {
+                    cenarioNome = "Cenário de Expansão";
+                    fatAuditores = 6;
+                    fatEnfermeiros = 3;
+                    fatFaturistas = 6;
+                    fatAuxiliares = 4;
+                } else if (fatInternacoes > 1800) {
+                    cenarioNome = "Cenário de Maior Expansão";
+                    fatAuditores = 7;
+                    fatEnfermeiros = 3;
+                    fatFaturistas = 7;
+                    fatAuxiliares = 4;
+                }
+
+                const totalEquipe = fatAuditores + fatEnfermeiros + fatFaturistas + fatAuxiliares;
+                const prodFaturista = Math.round(fatAihs / fatFaturistas);
+                const prodAuditor = Math.round(fatAihs / fatAuditores);
+
+                let alertMsg = "";
+                let alertColor = "green";
+                if (fatAihs >= 2070) {
+                    alertColor = "red";
+                    alertMsg = `Gatilho de contratação atingido! Necessária contratação mínima de: 1 faturista, 1 enfermeiro auditor, 1 médico auditor e 1 apoio administrativo (Enf. Auditor pode ser apoiado por estagiários).`;
+                } else {
+                    alertMsg = "Equipe atual dimensionada adequadamente para a demanda.";
+                }
+
+                document.getElementById("fatVolume").innerHTML = `
+                    <h2>${fatAihs.toLocaleString('pt-BR')} AIHs</h2>
+                    <small>Projetadas para <b>${fatInternacoes.toLocaleString('pt-BR')} internações</b><br>(Proporção de 1.15 AIH/int.)</small>`;
+
+                document.getElementById("fatEquipe").innerHTML = `
+                    <h2>${totalEquipe} prof.</h2>
+                    <small>${cenarioNome}<br>
+                    • Auditores: ${fatAuditores}<br>
+                    • Enf. Auditores: ${fatEnfermeiros}<br>
+                    • Faturistas: ${fatFaturistas}<br>
+                    • Aux. Adm: ${fatAuxiliares}</small>`;
+
+                document.getElementById("fatProdutividade").innerHTML = `
+                    <h2>${prodFaturista} / ${prodAuditor}</h2>
+                    <small>Média de AIHs processadas por:<br>
+                    • Faturista: <b>${prodFaturista}</b> AIHs<br>
+                    • Auditor Médico: <b>${prodAuditor}</b> AIHs</small>`;
+
+                document.getElementById("fatStatus").innerHTML = `
+                    <h3 style="color:${alertColor === 'red' ? '#c0392b' : '#27ae60'}; margin:0 0 6px; font-size:1rem;">${alertColor === 'red' ? '⚠️ Alerta de Impacto' : '🟢 Operação Estável'}</h3>
+                    <small style="display:block; line-height:1.35; color:${alertColor === 'red' ? '#c0392b' : '#27ae60'}">${alertMsg}</small>
+                    <small style="display:block; margin-top:6px; color:#7f8c8d; font-size:0.75rem;">
+                        * O setor opera no limite devido à <b>ausência de pré-faturamento estruturado</b>.
+                    </small>`;
+            }
+            cir.oninput = calc; perm.oninput = calc; ctiPct.oninput = calc; calc();
+
+            const modalCharts = {};
+            const VALOR_PERMANENCIA = 1124.57;
+            const ESP = [
+                { id: 'nerv', nome: 'Cirurgia do sistema nervoso central e periférico', pct: 2.55, ticket: 10236.61, custo: 10733.64, perm: 6.26, cor: '#6a4c93' },
+                { id: 'circ', nome: 'Cirurgia do aparelho circulatório', pct: 2.88, ticket: 6611.43, custo: 9710.09, perm: 5.24, cor: '#d62828' },
+                { id: 'oste', nome: 'Cirurgia do sistema osteomuscular', pct: 20.18, ticket: 4109.48, custo: 2925.15, perm: 5.37, cor: '#e76f51' },
+                { id: 'dig', nome: 'Cirurgia do aparelho digestivo, órgãos anexos e parede abdominal', pct: 59.42, ticket: 1471.50, custo: 1830.06, perm: 5.11, cor: '#2a9d8f' },
+                { id: 'gen', nome: 'Cirurgia do aparelho geniturinário', pct: 14.79, ticket: 1235.56, custo: 1609.75, perm: 3.01, cor: '#457b9d' },
+                { id: 'vias', nome: 'Outras cirurgias', pct: 0.17, ticket: 973.15, custo: 1070.93, perm: 6.00, cor: '#ff9800' },
+            ];
+            const ESP2 = [
+                { id: 'nerv', nome: 'Cirurgia do sistema nervoso central e periférico', pct: 2.55, ticket: 10236.61, custo: 17775.32, perm: 6.26, cor: '#6a4c93' },
+                { id: 'circ', nome: 'Cirurgia do aparelho circulatório', pct: 2.88, ticket: 6611.43, custo: 15598.92, perm: 5.24, cor: '#d62828' },
+                { id: 'oste', nome: 'Cirurgia do sistema osteomuscular', pct: 20.18, ticket: 4109.48, custo: 8961.72, perm: 5.37, cor: '#e76f51' },
+                { id: 'dig', nome: 'Cirurgia do aparelho digestivo, órgãos anexos e parede abdominal', pct: 59.42, ticket: 1471.50, custo: 7575.71, perm: 5.11, cor: '#2a9d8f' },
+                { id: 'gen', nome: 'Cirurgia do aparelho geniturinário', pct: 14.79, ticket: 1235.56, custo: 4991.08, perm: 3.01, cor: '#457b9d' },
+                { id: 'vias', nome: 'Outras cirurgias', pct: 0.17, ticket: 973.15, custo: 11900.08, perm: 6.00, cor: '#ff9800' },
+            ];
+            function getESP(p) { return p === '2' ? ESP2 : ESP; }
+            function toggleEstrat(p) {
+                p = p || '';
+                const m = document.getElementById('estratModal' + p);
+                const show = m.style.display === 'none';
+                m.style.display = show ? 'flex' : 'none';
+                if (show) initModal(p);
+            }
+            function initModal(p) {
+                const esp = getESP(p);
+                const g = document.getElementById('modalGrid' + p);
+                if (g.children.length) return;
+                const t = +cir.value;
+                esp.forEach(e => {
+                    const baseQty = Math.round(t * e.pct / 100);
+                    e.qty = baseQty;
+                    const maxLimit = Math.max(500, Math.round(baseQty * 3));
+                    const d = document.createElement('div');
+                    d.className = 'card';
+                    d.style.borderLeftColor = e.cor;
+                    d.innerHTML = `<b style="color:${e.cor}">${e.nome}</b>
+                        <div style="display:flex;align-items:center;gap:6px;margin:6px 0">
+                            <input type="range" min="0" max="${maxLimit}" step="1" value="${baseQty}" id="ms${p}-${e.id}" style="flex:1" oninput="recalcular('${p}','${e.id}')">
+                            <span class="esp-pct" id="mp${p}-${e.id}">${e.pct.toFixed(1)}%</span>
+                        </div>
+                        <div class="esp-info">
+                            <div>Procedimentos: <b id="mpr${p}-${e.id}">${baseQty}</b>/mês (Base: ${baseQty})</div>
+                            ${e.ticket ? `<div>Ticket Médio Fat. com incentivo: R$ ${e.ticket.toFixed(2)}</div>` : ''}
+                            ${e.custo ? `<div>Ticket Médio Custo: R$ ${e.custo.toFixed(2)}</div>` : ''}
+                            ${e.ticket && e.custo ? `<div>Resultado: <b style="color:${e.ticket - e.custo >= 0 ? '#2a9d8f' : '#d62828'}">R$ ${(e.ticket - e.custo).toFixed(2)}</b></div>` : ''}
+                            ${e.perm ? `<div>Permanência: ${e.perm.toFixed(2)} dias</div>` : ''}
+                            ${p !== '' && e.perm ? `<div>Valor da Permanência: <b style="color:${e.cor}">R$ ${(e.perm * VALOR_PERMANENCIA).toFixed(2)}</b></div>` : ''}
+                        </div>`;
+                    g.appendChild(d);
+                });
+                const ctx = document.getElementById('modalChart' + p);
+                modalCharts[p] = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: { labels: esp.map(e => e.nome), datasets: [{ data: esp.map(e => e.qty), backgroundColor: esp.map(e => e.cor), borderWidth: 2, borderColor: '#fff' }] },
+                    options: { plugins: { legend: { position: 'right', labels: { boxWidth: 12, padding: 8, font: { size: 11 } } } } }
+                });
+                atualizar(p);
+            }
+            function recalcular(p, id) {
+                const esp = getESP(p);
+                const e = esp.find(item => item.id === id);
+                if (e) {
+                    const s = document.getElementById(`ms${p}-${e.id}`);
+                    e.qty = +s.value;
+                }
+                atualizar(p);
+            }
+            function atualizar(p) {
+                const esp = getESP(p);
+                let novoTotal = 0;
+                esp.forEach(e => novoTotal += e.qty);
+                if (!novoTotal) return;
+
+                let totFat = 0, totCusto = 0, totPerm = 0, totalPacientes = 0;
+                const fmt2 = v => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                esp.forEach(e => {
+                    const newPct = (e.qty / novoTotal) * 100;
+                    document.getElementById(`mp${p}-${e.id}`).textContent = newPct.toFixed(1) + '%';
+                    document.getElementById(`mpr${p}-${e.id}`).textContent = e.qty;
+
+                    if (e.ticket) totFat += e.qty * e.ticket;
+                    if (e.custo) totCusto += e.qty * e.custo;
+                    if (e.perm) {
+                        totPerm += e.qty * e.perm;
+                        totalPacientes += e.qty;
+                    }
+                });
+
+                // Calcular impacto financeiro em relação à base da primeira página
+                // Impacto = Δ Custo − Δ Faturamento (Custo − Faturamento)
+                const t = +cir.value;
+                let baseFat = 0, baseCusto = 0;
+                esp.forEach(e => {
+                    const baseQty = Math.round(t * e.pct / 100);
+                    if (e.ticket) baseFat += baseQty * e.ticket;
+                    if (e.custo) baseCusto += baseQty * e.custo;
+                });
+
+                const deltaFat = totFat - baseFat;
+                const deltaCusto = totCusto - baseCusto;
+                const impactoFin = deltaCusto - deltaFat;
+                const impEl = document.getElementById('mImpacto' + p);
+                if (impactoFin > 0) {
+                    impEl.style.color = '#d62828'; // vermelho: custo adicional > faturamento adicional (impacto negativo)
+                    impEl.textContent = '-R$ ' + fmt2(impactoFin);
+                } else if (impactoFin < 0) {
+                    impEl.style.color = '#2a9d8f'; // verde: faturamento adicional > custo adicional (impacto positivo)
+                    impEl.textContent = '+R$ ' + fmt2(Math.abs(impactoFin));
+                } else {
+                    impEl.style.color = '#526b79'; // cinza
+                    impEl.textContent = 'R$ 0,00';
+                }
+
+                const novaPerm = (() => {
+                    const espComPerm = esp.filter(e => e.perm);
+                    return espComPerm.length ? espComPerm.reduce((s, e) => s + e.perm, 0) / espComPerm.length : 5.16;
+                })();
+
+                document.getElementById('mTotProc' + p).textContent = Math.round(novoTotal).toLocaleString('pt-BR');
+                document.getElementById('mTotFat' + p).textContent = 'R$ ' + fmt2(totFat);
+                document.getElementById('mTotCusto' + p).textContent = 'R$ ' + fmt2(totCusto);
+                // Ticket e custo médio calculados como média aritmética simples (igual ao Total Geral do relatório)
+                const espComTicket = esp.filter(e => e.ticket);
+                const espComCusto = esp.filter(e => e.custo);
+                const ticketMedioSimples = espComTicket.length ? espComTicket.reduce((s, e) => s + e.ticket, 0) / espComTicket.length : 0;
+                const custoMedioSimples = espComCusto.length ? espComCusto.reduce((s, e) => s + e.custo, 0) / espComCusto.length : 0;
+                document.getElementById('mTicket' + p).textContent = 'R$ ' + fmt2(ticketMedioSimples);
+                document.getElementById('mCustoMedio' + p).textContent = 'R$ ' + fmt2(custoMedioSimples);
+                document.getElementById('mPerm' + p).textContent = novaPerm.toFixed(2) + 'd';
+
+                const ch = modalCharts[p];
+                if (ch) {
+                    ch.data.datasets[0].data = esp.map(e => e.qty);
+                    ch.update();
+                }
+            }
+            function resetEstrat(p) {
+                p = p || '';
+                const esp = getESP(p);
+                const t = +cir.value;
+                esp.forEach(e => {
+                    const baseQty = Math.round(t * e.pct / 100);
+                    e.qty = baseQty;
+                    const s = document.getElementById(`ms${p}-${e.id}`);
+                    if (s) s.value = baseQty;
+                });
+                atualizar(p);
+            }
+            function resetarTudo() {
+                cir.value = 700;
+                perm.value = 6.9;
+                ctiPct.value = 3;
+                ['', '2'].forEach(p => {
+                    const esp = getESP(p);
+                    esp.forEach(e => {
+                        e.qty = Math.round(700 * e.pct / 100);
+                    });
+                    const modalGrid = document.getElementById('modalGrid' + p);
+                    if (modalGrid && modalGrid.children.length) {
+                        esp.forEach(e => {
+                            const s = document.getElementById(`ms${p}-${e.id}`);
+                            if (s) s.value = e.qty;
+                        });
+                        atualizar(p);
+                    }
+                });
+                calc();
+            }
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    ['', '2'].forEach(p => {
+                        const m = document.getElementById('estratModal' + p);
+                        if (m && m.style.display !== 'none') {
+                            toggleEstrat(p);
+                        }
+                    });
+                }
+            });
+        </script>
+    </div>
+
+    <div id="estratModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)toggleEstrat()">
+        <div class="modal-content">
+            <button class="modal-close" onclick="toggleEstrat()">&times;</button>
+            <h2 style="color:#0f4c81;margin:0 0 6px;font-size:1.3rem">Estratificação por Ticket Médio Cirúrgico.</h2>
+            <div
+                style="display:flex;align-items:center;justify-content:between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+                <p style="color:#526b79;font-size:0.85rem;margin:0;flex:1;min-width:280px">Comparação entre
+                    especialidades — aumente o volume de cirurgias de cada tipo e veja o impacto proporcional no
+                    faturamento e custo médio</p>
+                <button onclick="resetEstrat()" class="btn-reset-modal">Resetar Projeções</button>
+            </div>
+
+            <div class="modal-summary">
+                <div><b>Procedimentos</b><span id="mTotProc">700</span><small>/mês</small></div>
+                <div style="display:none"><b>Faturamento</b><span id="mTotFat">R$ 0</span></div>
+                <div><b>Impacto Fin.</b><span id="mImpacto" style="font-weight:700">R$
+                        0,00</span><small>Δ Custo − Δ Faturamento</small></div>
+                <div style="display:none"><b>Custo</b><span id="mTotCusto">R$ 0</span></div>
+                <div><b>Ticket Médio Fat. s/ incentivo</b><span id="mTicket">R$ 0</span></div>
+                <div><b>Ticket Médio Custo</b><span id="mCustoMedio">R$ 0</span></div>
+                <div><b>Permanência Média</b><span id="mPerm">0d</span></div>
+            </div>
+
+            <div class="modal-grid" id="modalGrid"></div>
+            <canvas id="modalChart" style="max-height:220px;margin-top:10px"></canvas>
+            <p
+                style="margin-top:12px;padding:8px 12px;background:#fffbe6;border-left:4px solid #f0a500;border-radius:4px;font-size:0.78rem;color:#526b79;line-height:1.5">
+                ⚠️ <strong>Atenção:</strong> O faturamento é apenas produção — <em>não inclui incentivo</em>. O custo é
+                total e inclui OPY <em>sem a diária</em>.
+                ⚠️ <strong>Atenção:</strong> Para o calculo do valor da diaria utilizamos o valor de R$ 1124,57</em>.
+            </p>
+        </div>
+    </div>
+
+    <div id="estratModal2" class="modal-overlay" style="display:none"
+        onclick="if(event.target===this)toggleEstrat('2')">
+        <div class="modal-content">
+            <button class="modal-close" onclick="toggleEstrat('2')">&times;</button>
+            <h2 style="color:#1e8e3e;margin:0 0 6px;font-size:1.3rem">Estratificação por Ticket Médio Cirúrgico com
+                DIARIA.</h2>
+            <div
+                style="display:flex;align-items:center;justify-content:between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+                <p style="color:#526b79;font-size:0.85rem;margin:0;flex:1;min-width:280px">Comparação entre
+                    especialidades — aumente o volume de cirurgias de cada tipo e veja o impacto proporcional no
+                    faturamento e custo médio</p>
+                <button onclick="resetEstrat('2')" class="btn-reset-modal">Resetar Projeções</button>
+            </div>
+
+            <div class="modal-summary">
+                <div><b>Procedimentos</b><span id="mTotProc2">700</span><small>/mês</small></div>
+                <div style="display:none"><b>Faturamento</b><span id="mTotFat2">R$ 0</span></div>
+                <div><b>Impacto Fin.</b><span id="mImpacto2" style="font-weight:700">R$
+                        0,00</span><small>Δ Custo − Δ Faturamento</small></div>
+                <div style="display:none"><b>Custo</b><span id="mTotCusto2">R$ 0</span></div>
+                <div><b>Ticket Médio Fat. s/ incentivo</b><span id="mTicket2">R$ 0</span></div>
+                <div><b>Ticket Médio Custo</b><span id="mCustoMedio2">R$ 0</span></div>
+                <div><b>Permanência Média</b><span id="mPerm2">0d</span></div>
+            </div>
+
+            <div class="modal-grid" id="modalGrid2"></div>
+            <canvas id="modalChart2" style="max-height:220px;margin-top:10px"></canvas>
+            <p
+                style="margin-top:12px;padding:8px 12px;background:#fffbe6;border-left:4px solid #f0a500;border-radius:4px;font-size:0.78rem;color:#526b79;line-height:1.5">
+                ⚠️ <strong>Atenção:</strong> O faturamento é apenas produção — <em>não inclui incentivo</em>. O custo é
+                total e inclui OPY <em>sem a diária</em>.
+                ⚠️ <strong>Atenção:</strong> Para o calculo do valor da diaria utilizamos o valor de R$ 1124,57</em>.
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>
